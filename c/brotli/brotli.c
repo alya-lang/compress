@@ -909,7 +909,9 @@ BROTLI_UNUSED_FUNCTION void BrotliSuppressUnusedFunctions(void) {
   BROTLI_UNUSED(&BROTLI_UNALIGNED_LOAD32LE);
   BROTLI_UNUSED(&BROTLI_UNALIGNED_LOAD64LE);
   BROTLI_UNUSED(&BROTLI_UNALIGNED_STORE64LE);
+#if !defined(BROTLI_RBIT)
   BROTLI_UNUSED(&BrotliRBit___2);
+#endif
   BROTLI_UNUSED(&brotli_min_double);
   BROTLI_UNUSED(&brotli_max_double);
   BROTLI_UNUSED(&brotli_min_float);
