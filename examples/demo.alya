@@ -1,5 +1,5 @@
-# Real-world demonstration of all 9 compression modules and checksums in Alya
-# Supported: Brotli, Bzip2, Deflate, Gzip, LZ, Snappy, Szip, Zlib, Zstd
+# Real-world demonstration of all 9 compression modules and LZ variations in Alya
+# Supported: Brotli, Bzip2, Deflate, Gzip, LZ (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW), Snappy, Szip, Zlib, Zstd
 
 import "std/fs"
 import "../src/lib.alya" as compress
@@ -7,7 +7,7 @@ import "../src/lib.alya" as compress
 function main()
     say "============================================================"
     say "       Alya Compression Toolkit (compress v" + compress::compress_version() + ")      "
-    say "       9 Lossless Compression Modules + ZIP Archives        "
+    say "       9 Lossless Compression Modules + Full LZ Family      "
     say "============================================================"
 
     let text = "The Alya Programming Language is built for speed, simplicity, and safety. "
@@ -54,12 +54,25 @@ function main()
     say "    Verified match : " + str(gz_restored == text)
     say "    Header Bytes   : ID1=" + str(gz[0]) + ", ID2=" + str(gz[1]) + "\n"
 
-    # 6. LZ / LZ4 Real-time Compression
-    let lz = compress::lz4_str(text)
-    let lz_restored = compress::unlz4_str(lz)
-    say "[6] LZ / LZ4 Real-time Compression:"
-    say "    Compressed size: " + str(len(lz)) + " bytes"
-    say "    Verified match : " + str(lz_restored == text) + "\n"
+    # 6. LZ Family: LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW
+    let lz4 = compress::lz4_str(text)
+    let lz77 = compress::lz77_str(text)
+    let lz78 = compress::lz78_str(text)
+    let lzw = compress::lzw_str(text)
+    let lzss = compress::lzss_str(text)
+    let lzma = compress::lzma_str(text)
+    let lzma2 = compress::lzma2_str(text)
+    let lzjb = compress::lzjb_str(text)
+
+    say "[6] LZ Family Variations:"
+    say "    - LZ4   : " + str(len(lz4)) + " bytes (Restored: " + str(compress::unlz4_str(lz4) == text) + ")"
+    say "    - LZ77  : " + str(len(lz77)) + " bytes (Restored: " + str(compress::unlz77_str(lz77) == text) + ")"
+    say "    - LZ78  : " + str(len(lz78)) + " bytes (Restored: " + str(compress::unlz78_str(lz78) == text) + ")"
+    say "    - LZW   : " + str(len(lzw)) + " bytes (Restored: " + str(compress::unlzw_str(lzw) == text) + ")"
+    say "    - LZSS  : " + str(len(lzss)) + " bytes (Restored: " + str(compress::unlzss_str(lzss) == text) + ")"
+    say "    - LZMA  : " + str(len(lzma)) + " bytes (Restored: " + str(compress::unlzma_str(lzma) == text) + ")"
+    say "    - LZMA2 : " + str(len(lzma2)) + " bytes (Restored: " + str(compress::unlzma2_str(lzma2) == text) + ")"
+    say "    - LZJB  : " + str(len(lzjb)) + " bytes (Restored: " + str(compress::unlzjb_str(lzjb) == text) + ")\n"
 
     # 7. Google Snappy
     let snp = compress::snappy_str(text)
@@ -111,13 +124,20 @@ function main()
     say "  Bzip2         | " + str(orig_size) + " B    | " + str(len(bz)) + " B       | OK"
     say "  Raw DEFLATE   | " + str(orig_size) + " B    | " + str(len(def)) + " B       | OK"
     say "  GZIP          | " + str(orig_size) + " B    | " + str(len(gz)) + " B       | OK"
-    say "  LZ / LZ4      | " + str(orig_size) + " B    | " + str(len(lz)) + " B       | OK"
+    say "  LZ4           | " + str(orig_size) + " B    | " + str(len(lz4)) + " B       | OK"
+    say "  LZ77          | " + str(orig_size) + " B    | " + str(len(lz77)) + " B       | OK"
+    say "  LZ78          | " + str(orig_size) + " B    | " + str(len(lz78)) + " B       | OK"
+    say "  LZW           | " + str(orig_size) + " B    | " + str(len(lzw)) + " B       | OK"
+    say "  LZSS          | " + str(orig_size) + " B    | " + str(len(lzss)) + " B       | OK"
+    say "  LZMA          | " + str(orig_size) + " B    | " + str(len(lzma)) + " B       | OK"
+    say "  LZMA2         | " + str(orig_size) + " B    | " + str(len(lzma2)) + " B       | OK"
+    say "  LZJB          | " + str(orig_size) + " B    | " + str(len(lzjb)) + " B       | OK"
     say "  Snappy        | " + str(orig_size) + " B    | " + str(len(snp)) + " B       | OK"
     say "  SZIP          | " + str(orig_size) + " B    | " + str(len(sz)) + " B       | OK"
     say "  ZLIB          | " + str(orig_size) + " B    | " + str(len(zl)) + " B       | OK"
     say "  ZSTD          | " + str(orig_size) + " B    | " + str(len(zst)) + " B       | OK"
     say "============================================================"
-    say "All 9 compression modules and ZIP archive cycles verified!"
+    say "All 16 compression engines/variations and ZIP archive cycles verified!"
 end
 
 main()

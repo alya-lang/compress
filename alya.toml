@@ -1,18 +1,18 @@
 [package]
 name = "compress"
-version = "0.2.0"
+version = "0.3.0"
 alya-version = "0.0.16"
 entry = "src/lib.alya"
-description = "Comprehensive compression toolkit for Alya (Brotli, Bzip2, Deflate, Gzip, LZ4, Snappy, Szip, Zlib, Zstd)"
+description = "Comprehensive compression toolkit for Alya (Brotli, Bzip2, Deflate, Gzip, LZ family, Snappy, Szip, Zlib, Zstd)"
 authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
 license = "MIT"
 homepage = "https://github.com/alya-lang/alya"
 repository = "https://github.com/alya-lang/compress"
-keywords = ["alya", "alya-lang", "package", "compress", "compression", "gzip", "zlib", "deflate", "snappy", "lz4", "zstd", "bzip2", "brotli", "szip", "c", "ffi"]
+keywords = ["alya", "alya-lang", "package", "compress", "compression", "gzip", "zlib", "deflate", "snappy", "lz", "lz4", "lz77", "lz78", "lzw", "lzss", "lzma", "lzjb", "zstd", "bzip2", "brotli", "szip", "c", "ffi"]
 
 [dependencies]
 
 [build]
-c-sources = ["c/miniz.c", "c/lz4.c", "c/snappy.c", "c/zstd.c", "c/bzip2.c", "c/brotli.c", "c/compress.c"]
+c-sources = ["c/miniz.c", "c/lz4.c", "c/snappy.c", "c/zstd.c", "c/bzip2.c", "c/brotli.c", "c/lz.c", "c/compress.c"]
 c-flags = ["-O2"]
 c-include-dirs = ["c"]

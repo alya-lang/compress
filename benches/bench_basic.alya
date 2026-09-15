@@ -5,7 +5,7 @@ import "std/bench"
 import "../src/lib.alya" as compress
 
 function main()
-    let runner = bench_runner("Compression 9-Module Micro-Benchmarks")
+    let runner = bench_runner("Compression 9-Module & LZ Variations Micro-Benchmarks")
 
     let payload = "Alya is a modern, high-performance programming language designed for systems and ecosystem tooling. "
     payload += "Fast execution, direct C FFI, and zero runtime dependencies make it ideal for high throughput services."
@@ -19,6 +19,10 @@ function main()
     let bz_data = compress::bzip2_str(payload)
     let br_data = compress::brotli_str(payload)
     let sz_data = compress::szip_str(payload)
+    let lz77_data = compress::lz77_str(payload)
+    let lz78_data = compress::lz78_str(payload)
+    let lzw_data = compress::lzw_str(payload)
+    let lzjb_data = compress::lzjb_str(payload)
 
     # 1. Gzip Compression (10,000 calls)
     bench_start(runner, 10000)
@@ -173,7 +177,61 @@ function main()
     end
     bench_stop(runner, "szip_str() 10k calls")
 
-    # 18. CRC-32 Checksum (50,000 calls)
+    # 18. LZ77 Compression (10,000 calls)
+    bench_start(runner, 10000)
+    let lz77i = 0
+    while lz77i < 10000
+        compress::lz77_str(payload)
+        lz77i += 1
+    end
+    bench_stop(runner, "lz77_str() 10k calls")
+
+    # 19. LZ77 Decompression (25,000 calls)
+    bench_start(runner, 25000)
+    let lz77di = 0
+    while lz77di < 25000
+        compress::unlz77_str(lz77_data)
+        lz77di += 1
+    end
+    bench_stop(runner, "unlz77_str() 25k calls")
+
+    # 20. LZJB Compression (10,000 calls)
+    bench_start(runner, 10000)
+    let lzjbi = 0
+    while lzjbi < 10000
+        compress::lzjb_str(payload)
+        lzjbi += 1
+    end
+    bench_stop(runner, "lzjb_str() 10k calls")
+
+    # 21. LZJB Decompression (25,000 calls)
+    bench_start(runner, 25000)
+    let lzjbdi = 0
+    while lzjbdi < 25000
+        compress::unlzjb_str(lzjb_data)
+        lzjbdi += 1
+    end
+    bench_stop(runner, "unlzjb_str() 25k calls")
+
+    # 22. LZW Compression (5,000 calls)
+    bench_start(runner, 5000)
+    let lzwi = 0
+    while lzwi < 5000
+        compress::lzw_str(payload)
+        lzwi += 1
+    end
+    bench_stop(runner, "lzw_str() 5k calls")
+
+    # 23. LZW Decompression (10,000 calls)
+    bench_start(runner, 10000)
+    let lzwdi = 0
+    while lzwdi < 10000
+        compress::unlzw_str(lzw_data)
+        lzwdi += 1
+    end
+    bench_stop(runner, "unlzw_str() 10k calls")
+
+    # 24. CRC-32 Checksum (50,000 calls)
     bench_start(runner, 50000)
     let ci = 0
     while ci < 50000
@@ -182,7 +240,7 @@ function main()
     end
     bench_stop(runner, "crc32_str() 50k calls")
 
-    # 19. Adler-32 Checksum (50,000 calls)
+    # 25. Adler-32 Checksum (50,000 calls)
     bench_start(runner, 50000)
     let ai = 0
     while ai < 50000

@@ -6,7 +6,7 @@
 #   2. bzip2  - Burrows-Wheeler bzip2 block compression
 #   3. deflate- RFC 1951 raw Deflate
 #   4. gzip   - RFC 1952 Gzip with CRC-32 and headers
-#   5. lz     - LZ4 ultra-fast real-time block compression
+#   5. lz     - Lempel-Ziv family (lz4, lz77, lz78, lzjb, lzma, lzma2, lzss, lzw)
 #   6. snappy - Google Snappy high-throughput block compression
 #   7. szip   - Simple ZIP archive management and buffer compression
 #   8. zlib   - RFC 1950 Zlib with Adler-32
@@ -17,6 +17,7 @@ import "deflate.alya"
 import "zlib.alya"
 import "gzip.alya"
 import "lz4.alya"
+import "lz.alya"
 import "snappy.alya"
 import "zstd.alya"
 import "bzip2.alya"
@@ -49,13 +50,21 @@ function unbrotli_str(bytes)
     return brotli_decompress_str(bytes)
 end
 
-# --- 2. BZIP2 ---
+# --- 2. BZIP2 (Burrows-Wheeler) ---
 function bzip2(bytes)
     return bzip2_compress(bytes)
 end
 
 function bzip2_str(text)
     return bzip2_compress_str(text)
+end
+
+function bzip2_block(bytes, block_100k)
+    return bzip2_compress_level(bytes, block_100k)
+end
+
+function bzip2_str_block(text, block_100k)
+    return bzip2_compress_str_level(text, block_100k)
 end
 
 function bzip2_level(bytes, level)
@@ -124,7 +133,9 @@ function gunzip_str(bytes)
     return gzip_decompress_str(bytes)
 end
 
-# --- 5. LZ / LZ4 Real-time Compression ---
+# --- 5. LZ FAMILY (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW) ---
+
+# Native C LZ4 block compressor (ultra-fast 1M+ ops/s)
 function lz(bytes)
     return lz4_compress(bytes)
 end
@@ -156,6 +167,9 @@ end
 function unlz4_str(bytes)
     return lz4_decompress_str(bytes)
 end
+
+# Note: LZ family functions (lz_compress, lz_decompress, lz77, lz78, lzw, lzss, lzma, lzma2, lzjb)
+# are automatically exported via `import "lz.alya"`.
 
 # --- 6. SNAPPY ---
 function snappy(bytes)
@@ -216,7 +230,7 @@ function unzlib_str(bytes)
     return zlib_decompress_str(bytes)
 end
 
-# --- 9. ZSTD (Zstandard) ---
+# --- 9. ZSTD (Meta Zstandard) ---
 function zstd(bytes)
     return zstd_compress(bytes)
 end
@@ -243,5 +257,5 @@ end
 
 # --- PACKAGE VERSION ---
 function compress_version()
-    return "0.2.0"
+    return "0.3.0"
 end

@@ -58,6 +58,10 @@ extern "C" from "compress"
     # Buffer deallocator
     function alya_free_buffer(p: ptr) -> i32
 
+    # Unified LZ Codecs (LZ77, LZ78, LZW, LZ4, LZSS, LZMA, LZMA2, LZJB)
+    function alya_lz_compress(format: i32, src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_lz_decompress(format: i32, src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+
     # Checksums
     function alya_crc32(crc: i64, buf: ptr, len: i64) -> i64
     function alya_adler32(adler: i64, buf: ptr, len: i64) -> i64
