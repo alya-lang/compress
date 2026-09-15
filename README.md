@@ -89,13 +89,13 @@ Add `compress` to the `[dependencies]` section in your `alya.toml`:
 
 ```toml
 [dependencies]
-compress = { git = "https://github.com/alya-lang/compress", tag = "v0.2.0" }
+compress = { git = "https://github.com/alya-lang/compress", branch = "main" }
 ```
 
 Or install it directly using the Alya package CLI:
 
 ```bash
-alyac add compress --git https://github.com/alya-lang/compress --tag v0.2.0
+alyac add compress --git https://github.com/alya-lang/compress --branch main
 alyac install
 ```
 
