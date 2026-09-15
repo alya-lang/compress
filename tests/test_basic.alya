@@ -9,10 +9,7 @@ function main()
     test_suite("Compress - 10 Modules & Full LZ Family: Brotli, Bzip2, Deflate, Gzip, Huffman, LZ (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW), Snappy, Szip, Zlib, Zstd")
     let r = runner_new()
 
-    # 1. Version Check
-    runner_assert_str_eq(r, compress::compress_version(), "0.4.0", "compress_version returns 0.4.0")
-
-    # 2. Checksums (RFC 1950 & CRC-32)
+    # 1. Checksums (RFC 1950 & CRC-32)
     let test_str = "The quick brown fox jumps over the lazy dog"
     let c_crc = compress::crc32_str(test_str)
     runner_assert_eq(r, c_crc, 1095738169, "CRC-32 of test phrase (0x414fa339)")
@@ -60,10 +57,7 @@ function main()
     let lz_restored = compress::unlz4_str(lz)
     runner_assert_str_eq(r, lz_restored, sample_text, "unlz4_str restores original text")
 
-    let lz_alias = compress::lz_str(sample_text)
-    runner_assert_str_eq(r, compress::unlz_str(lz_alias), sample_text, "lz alias roundtrip matches")
-
-    # 7. LZ Family Variations (LZ77, LZ78, LZW, LZSS, LZMA, LZMA2, LZJB)
+    # 6. LZ Family Variations (LZ77, LZ78, LZW, LZSS, LZMA, LZMA2, LZJB)
     # LZ77
     let c_lz77 = compress::lz77_str(sample_text)
     runner_assert_true(r, len(c_lz77) > 0, "LZ77 produces output")

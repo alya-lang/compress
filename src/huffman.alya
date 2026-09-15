@@ -293,11 +293,3 @@ function huffman_decompress(bytes)
 
     return res
 end
-
-function huffman_encode(text)
-    return huffman_compress(text)
-end
-
-function huffman_decode(bytes)
-    return huffman_decompress(bytes)
-end

@@ -6,7 +6,7 @@ import "../src/lib.alya" as compress
 
 function main()
     say "============================================================"
-    say "       Alya Compression Toolkit (compress v" + compress::compress_version() + ")      "
+    say "                Alya Compression Toolkit (compress)                 "
     say "       9 Lossless Compression Modules + Full LZ Family      "
     say "============================================================"
 

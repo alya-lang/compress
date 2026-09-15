@@ -137,21 +137,6 @@ end
 # --- 5. LZ FAMILY (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW) ---
 
 # Native C LZ4 block compressor (ultra-fast 1M+ ops/s)
-function lz(bytes)
-    return lz4_compress(bytes)
-end
-
-function lz_str(text)
-    return lz4_compress_str(text)
-end
-
-function unlz(bytes)
-    return lz4_decompress(bytes)
-end
-
-function unlz_str(bytes)
-    return lz4_decompress_str(bytes)
-end
 
 function lz4(bytes)
     return lz4_compress(bytes)
@@ -271,17 +256,4 @@ end
 
 function unhuffman_str(bytes)
     return huffman_decompress(bytes)
-end
-
-function huffman_encode_str(text)
-    return huffman_encode(text)
-end
-
-function huffman_decode_str(bytes)
-    return huffman_decode(bytes)
-end
-
-# --- PACKAGE VERSION ---
-function compress_version()
-    return "0.4.0"
 end

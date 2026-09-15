@@ -35,9 +35,4 @@ let c5 = huffman_compress("")
 let d5 = huffman_decompress(c5)
 assert_str_eq(d5, "", "huffman empty input")
 
-# 6. Aliases huffman_encode / decode
-let c6 = huffman_encode("Alya Language 2026")
-let d6 = huffman_decode(c6)
-assert_str_eq(d6, "Alya Language 2026", "huffman aliases encode/decode")
-
-say "All Huffman tests passed successfully!"
+    say "All Huffman tests passed successfully!"

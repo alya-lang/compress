@@ -9,7 +9,7 @@ Comprehensive, high-performance compression and decompression toolkit for the **
 
 ---
 
-## 🌟 Supported Modules & Variations
+## 🌟 Features
 
 - **`compress.brotli`** (Google Brotli, RFC 7932): High-density lossless compression, standard for modern web assets.
 - **`compress.bzip2`** (Burrows-Wheeler, libbzip2 1.0.8): Block-sorting data compressor with high ratio.
@@ -299,6 +299,24 @@ Run the demonstration:
 ```bash
 alyac run examples/demo.alya
 ```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository and clone it locally
+2. Install dependencies:
+   ```bash
+   alyac install
+   ```
+3. Create your feature branch (`git checkout -b feature/my-feature`)
+4. Verify tests and formatting before opening a PR:
+   ```bash
+   alyac test
+   ```
+5. Commit your changes (`git commit -m "feat: add feature"`) and open a Pull Request
 
 ---
 
