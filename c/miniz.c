@@ -1,4 +1,5 @@
 #include "miniz.h"
+
 /**************************************************************************
  *
  * Copyright 2013-2014 RAD Game Tools and Valve Software
@@ -645,6 +646,7 @@ mz_ulong mz_crc32(mz_ulong crc, const mz_uint8 *ptr, size_t buf_len)
 
   For more information, please refer to <http://unlicense.org/>
 */
+
 /**************************************************************************
  *
  * Copyright 2013-2014 RAD Game Tools and Valve Software
@@ -2247,7 +2249,8 @@ static MZ_FORCEINLINE void tdefl_find_match(tdefl_compressor *d, mz_uint lookahe
 #endif
 
 #endif /*#ifndef MINIZ_NO_DEFLATE_APIS*/
- /**************************************************************************
+
+/**************************************************************************
  *
  * Copyright 2013-2014 RAD Game Tools and Valve Software
  * Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
@@ -3025,7 +3028,8 @@ extern "C"
 #endif
 
 #endif /*#ifndef MINIZ_NO_INFLATE_APIS*/
- /**************************************************************************
+
+/**************************************************************************
  *
  * Copyright 2013-2014 RAD Game Tools and Valve Software
  * Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
@@ -7920,3 +7924,4 @@ static int mz_stat64(const char *path, struct __stat64 *buffer)
 #endif
 
 #endif /*#ifndef MINIZ_NO_ARCHIVE_APIS*/
+

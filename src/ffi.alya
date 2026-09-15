@@ -8,10 +8,14 @@ extern "C" from "compress"
     function alya_gzip_bound(src_len: i64) -> i64
     function alya_lz4_bound(src_len: i64) -> i64
     function alya_snappy_bound(src_len: i64) -> i64
+    function alya_zstd_bound(src_len: i64) -> i64
+    function alya_bzip2_bound(src_len: i64) -> i64
+    function alya_brotli_bound(src_len: i64) -> i64
 
     # Size queries
     function alya_snappy_uncompressed_len(src: ptr, src_len: i64, out_len: ptr) -> i32
     function alya_gzip_uncompressed_len(src: ptr, src_len: i64, out_len: ptr) -> i32
+    function alya_zstd_uncompressed_len(src: ptr, src_len: i64, out_len: ptr) -> i32
 
     # Compression
     function alya_deflate_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
@@ -19,6 +23,9 @@ extern "C" from "compress"
     function alya_gzip_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
     function alya_lz4_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
     function alya_snappy_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_zstd_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
+    function alya_bzip2_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
+    function alya_brotli_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, quality: i32) -> i32
 
     # Fixed-buffer decompression
     function alya_deflate_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
@@ -26,6 +33,9 @@ extern "C" from "compress"
     function alya_gzip_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
     function alya_lz4_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
     function alya_snappy_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_zstd_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_bzip2_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_brotli_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
 
     # Auto-allocating dynamic decompression
     function alya_deflate_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
@@ -33,6 +43,17 @@ extern "C" from "compress"
     function alya_gzip_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
     function alya_lz4_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
     function alya_snappy_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_zstd_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_bzip2_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_brotli_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+
+    # SZIP Archive Management
+    function alya_szip_create_archive(zip_filename: str) -> i32
+    function alya_szip_add_mem(zip_filename: str, archive_name: str, data: ptr, data_len: i64, level: i32) -> i32
+    function alya_szip_get_num_files(zip_filename: str) -> i32
+    function alya_szip_get_filename(zip_filename: str, file_index: i32, out_name: ptr, max_name_len: i64) -> i32
+    function alya_szip_extract_to_mem(zip_filename: str, archive_name: str, out_buf: ptr, out_len: ptr) -> i32
+    function alya_szip_extract_to_file(zip_filename: str, archive_name: str, dst_path: str) -> i32
 
     # Buffer deallocator
     function alya_free_buffer(p: ptr) -> i32

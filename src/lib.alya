@@ -1,14 +1,16 @@
 # compress - Comprehensive compression toolkit for Alya
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 #
-# Supported Algorithms:
-#   - GZIP (RFC 1952) with CRC-32 and headers
-#   - ZLIB (RFC 1950) with Adler-32
-#   - Raw DEFLATE (RFC 1951)
-#   - LZ4 Fast real-time block compression
-#   - Google Snappy block compression
-#   - CRC-32 and Adler-32 checksums
-#   - Hexadecimal encoding & decoding utilities
+# Supported 9 Compression Modules:
+#   1. brotli - Google Brotli compression (RFC 7932)
+#   2. bzip2  - Burrows-Wheeler bzip2 block compression
+#   3. deflate- RFC 1951 raw Deflate
+#   4. gzip   - RFC 1952 Gzip with CRC-32 and headers
+#   5. lz     - LZ4 ultra-fast real-time block compression
+#   6. snappy - Google Snappy high-throughput block compression
+#   7. szip   - Simple ZIP archive management and buffer compression
+#   8. zlib   - RFC 1950 Zlib with Adler-32
+#   9. zstd   - Meta/Facebook Zstandard scalable compression
 
 import "types.alya"
 import "deflate.alya"
@@ -16,9 +18,63 @@ import "zlib.alya"
 import "gzip.alya"
 import "lz4.alya"
 import "snappy.alya"
+import "zstd.alya"
+import "bzip2.alya"
+import "brotli.alya"
+import "szip.alya"
 import "checksum.alya"
 
-# --- DEFLATE (RFC 1951) ---
+# --- 1. BROTLI (RFC 7932) ---
+function brotli(bytes)
+    return brotli_compress(bytes)
+end
+
+function brotli_str(text)
+    return brotli_compress_str(text)
+end
+
+function brotli_quality(bytes, quality)
+    return brotli_compress_level(bytes, quality)
+end
+
+function brotli_str_quality(text, quality)
+    return brotli_compress_str_level(text, quality)
+end
+
+function unbrotli(bytes)
+    return brotli_decompress(bytes)
+end
+
+function unbrotli_str(bytes)
+    return brotli_decompress_str(bytes)
+end
+
+# --- 2. BZIP2 ---
+function bzip2(bytes)
+    return bzip2_compress(bytes)
+end
+
+function bzip2_str(text)
+    return bzip2_compress_str(text)
+end
+
+function bzip2_level(bytes, level)
+    return bzip2_compress_level(bytes, level)
+end
+
+function bzip2_str_level(text, level)
+    return bzip2_compress_str_level(text, level)
+end
+
+function unbzip2(bytes)
+    return bzip2_decompress(bytes)
+end
+
+function unbzip2_str(bytes)
+    return bzip2_decompress_str(bytes)
+end
+
+# --- 3. DEFLATE (RFC 1951) ---
 function deflate(bytes)
     return deflate_compress(bytes)
 end
@@ -43,32 +99,7 @@ function inflate_str(bytes)
     return deflate_decompress_str(bytes)
 end
 
-# --- ZLIB (RFC 1950) ---
-function zlib(bytes)
-    return zlib_compress(bytes)
-end
-
-function zlib_str(text)
-    return zlib_compress_str(text)
-end
-
-function zlib_level(bytes, level)
-    return zlib_compress_level(bytes, level)
-end
-
-function zlib_str_level(text, level)
-    return zlib_compress_str_level(text, level)
-end
-
-function unzlib(bytes)
-    return zlib_decompress(bytes)
-end
-
-function unzlib_str(bytes)
-    return zlib_decompress_str(bytes)
-end
-
-# --- GZIP (RFC 1952) ---
+# --- 4. GZIP (RFC 1952) ---
 function gzip(bytes)
     return gzip_compress(bytes)
 end
@@ -93,7 +124,23 @@ function gunzip_str(bytes)
     return gzip_decompress_str(bytes)
 end
 
-# --- LZ4 Fast Compression ---
+# --- 5. LZ / LZ4 Real-time Compression ---
+function lz(bytes)
+    return lz4_compress(bytes)
+end
+
+function lz_str(text)
+    return lz4_compress_str(text)
+end
+
+function unlz(bytes)
+    return lz4_decompress(bytes)
+end
+
+function unlz_str(bytes)
+    return lz4_decompress_str(bytes)
+end
+
 function lz4(bytes)
     return lz4_compress(bytes)
 end
@@ -110,7 +157,7 @@ function unlz4_str(bytes)
     return lz4_decompress_str(bytes)
 end
 
-# --- Google Snappy ---
+# --- 6. SNAPPY ---
 function snappy(bytes)
     return snappy_compress(bytes)
 end
@@ -127,7 +174,74 @@ function unsnappy_str(bytes)
     return snappy_decompress_str(bytes)
 end
 
+# --- 7. SZIP / ZIP ARCHIVE ---
+function szip(bytes)
+    return szip_compress(bytes)
+end
+
+function szip_str(text)
+    return szip_compress_str(text)
+end
+
+function unszip(bytes)
+    return szip_decompress(bytes)
+end
+
+function unszip_str(bytes)
+    return szip_decompress_str(bytes)
+end
+
+# --- 8. ZLIB (RFC 1950) ---
+function zlib(bytes)
+    return zlib_compress(bytes)
+end
+
+function zlib_str(text)
+    return zlib_compress_str(text)
+end
+
+function zlib_level(bytes, level)
+    return zlib_compress_level(bytes, level)
+end
+
+function zlib_str_level(text, level)
+    return zlib_compress_str_level(text, level)
+end
+
+function unzlib(bytes)
+    return zlib_decompress(bytes)
+end
+
+function unzlib_str(bytes)
+    return zlib_decompress_str(bytes)
+end
+
+# --- 9. ZSTD (Zstandard) ---
+function zstd(bytes)
+    return zstd_compress(bytes)
+end
+
+function zstd_str(text)
+    return zstd_compress_str(text)
+end
+
+function zstd_level(bytes, level)
+    return zstd_compress_level(bytes, level)
+end
+
+function zstd_str_level(text, level)
+    return zstd_compress_str_level(text, level)
+end
+
+function unzstd(bytes)
+    return zstd_decompress(bytes)
+end
+
+function unzstd_str(bytes)
+    return zstd_decompress_str(bytes)
+end
+
 # --- PACKAGE VERSION ---
 function compress_version()
-    return "0.1.0"
+    return "0.2.0"
 end

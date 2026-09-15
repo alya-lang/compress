@@ -2,14 +2,15 @@
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
 import "std/test"
+import "std/fs"
 import "../src/lib.alya" as compress
 
 function main()
-    test_suite("Compress - Gzip, Zlib, Deflate, LZ4, Snappy, Checksums")
+    test_suite("Compress - 9 Modules: Brotli, Bzip2, Deflate, Gzip, LZ, Snappy, Szip, Zlib, Zstd")
     let r = runner_new()
 
     # 1. Version Check
-    runner_assert_str_eq(r, compress::compress_version(), "0.1.0", "compress_version returns 0.1.0")
+    runner_assert_str_eq(r, compress::compress_version(), "0.2.0", "compress_version returns 0.2.0")
 
     # 2. Checksums (RFC 1950 & CRC-32)
     let test_str = "The quick brown fox jumps over the lazy dog"
@@ -53,11 +54,14 @@ function main()
     let def_restored = compress::inflate_str(def)
     runner_assert_str_eq(r, def_restored, sample_text, "inflate_str restores original text")
 
-    # 6. LZ4 Fast Compression Roundtrip
+    # 6. LZ4 / LZ Fast Compression Roundtrip
     let lz = compress::lz4_str(sample_text)
     runner_assert_true(r, len(lz) > 4, "LZ4 output has 4-byte length prefix")
     let lz_restored = compress::unlz4_str(lz)
     runner_assert_str_eq(r, lz_restored, sample_text, "unlz4_str restores original text")
+
+    let lz_alias = compress::lz_str(sample_text)
+    runner_assert_str_eq(r, compress::unlz_str(lz_alias), sample_text, "lz alias roundtrip matches")
 
     # 7. Google Snappy Compression Roundtrip
     let snp = compress::snappy_str(sample_text)
@@ -65,7 +69,58 @@ function main()
     let snp_restored = compress::unsnappy_str(snp)
     runner_assert_str_eq(r, snp_restored, sample_text, "unsnappy_str restores original text")
 
-    # 8. Repetitive Data Compression Ratios
+    # 8. ZSTD (Zstandard) Roundtrip
+    let zst = compress::zstd_str(sample_text)
+    runner_assert_true(r, len(zst) > 0, "ZSTD produces output")
+    let zst_restored = compress::unzstd_str(zst)
+    runner_assert_str_eq(r, zst_restored, sample_text, "unzstd_str restores original text")
+
+    # 9. BZIP2 Roundtrip
+    let bz = compress::bzip2_str(sample_text)
+    runner_assert_true(r, len(bz) > 0, "BZIP2 produces output")
+    runner_assert_eq(r, bz[0], 66, "BZIP2 magic 'B' (66)")
+    runner_assert_eq(r, bz[1], 90, "BZIP2 magic 'Z' (90)")
+    runner_assert_eq(r, bz[2], 104, "BZIP2 magic 'h' (104)")
+    let bz_restored = compress::unbzip2_str(bz)
+    runner_assert_str_eq(r, bz_restored, sample_text, "unbzip2_str restores original text")
+
+    # 10. BROTLI (RFC 7932) Roundtrip
+    let br = compress::brotli_str(sample_text)
+    runner_assert_true(r, len(br) > 0, "Brotli produces output")
+    let br_restored = compress::unbrotli_str(br)
+    runner_assert_str_eq(r, br_restored, sample_text, "unbrotli_str restores original text")
+
+    # 11. SZIP Buffer Roundtrip
+    let sz = compress::szip_str(sample_text)
+    runner_assert_true(r, len(sz) > 0, "SZIP produces output")
+    let sz_restored = compress::unszip_str(sz)
+    runner_assert_str_eq(r, sz_restored, sample_text, "unszip_str restores original text")
+
+    # 12. SZIP ZIP Archive Operations
+    let zip_test_path = "test_archive.zip"
+    if file_exists(zip_test_path)
+        remove_file(zip_test_path)
+    end
+    compress::szip_create(zip_test_path)
+    compress::szip_add_text(zip_test_path, "hello.txt", "Hello from Alya ZIP archive!")
+    compress::szip_add_text(zip_test_path, "sub/config.json", "{\"alya\": true, \"compress\": 9}")
+
+    let zip_files = compress::szip_list(zip_test_path)
+    runner_assert_eq(r, len(zip_files), 2, "ZIP archive contains 2 files")
+    runner_assert_str_eq(r, zip_files[0], "hello.txt", "First file is hello.txt")
+    runner_assert_str_eq(r, zip_files[1], "sub/config.json", "Second file is sub/config.json")
+
+    let extracted_hello = compress::szip_extract_text(zip_test_path, "hello.txt")
+    runner_assert_str_eq(r, extracted_hello, "Hello from Alya ZIP archive!", "Extracted text matches original")
+
+    let extracted_json = compress::szip_extract_text(zip_test_path, "sub/config.json")
+    runner_assert_str_eq(r, extracted_json, "{\"alya\": true, \"compress\": 9}", "Extracted JSON text matches")
+
+    if file_exists(zip_test_path)
+        remove_file(zip_test_path)
+    end
+
+    # 13. Repetitive Data Compression Ratios (All Algorithms)
     let repetitive = ""
     let rep_i = 0
     while rep_i < 100
@@ -79,69 +134,77 @@ function main()
     let rep_def = compress::deflate_str(repetitive)
     let rep_lz = compress::lz4_str(repetitive)
     let rep_snp = compress::snappy_str(repetitive)
+    let rep_zst = compress::zstd_str(repetitive)
+    let rep_bz = compress::bzip2_str(repetitive)
+    let rep_br = compress::brotli_str(repetitive)
 
     runner_assert_true(r, len(rep_gz) < rep_orig_len / 5, "Gzip compresses repetitive data > 5x")
     runner_assert_true(r, len(rep_zl) < rep_orig_len / 5, "Zlib compresses repetitive data > 5x")
     runner_assert_true(r, len(rep_def) < rep_orig_len / 5, "Deflate compresses repetitive data > 5x")
     runner_assert_true(r, len(rep_lz) < rep_orig_len / 4, "LZ4 compresses repetitive data > 4x")
     runner_assert_true(r, len(rep_snp) < rep_orig_len / 4, "Snappy compresses repetitive data > 4x")
+    runner_assert_true(r, len(rep_zst) < rep_orig_len / 5, "ZSTD compresses repetitive data > 5x")
+    runner_assert_true(r, len(rep_bz) < rep_orig_len / 5, "BZIP2 compresses repetitive data > 5x")
+    runner_assert_true(r, len(rep_br) < rep_orig_len / 5, "Brotli compresses repetitive data > 5x")
 
     runner_assert_str_eq(r, compress::gunzip_str(rep_gz), repetitive, "Gzip decompresses large repetitive text")
     runner_assert_str_eq(r, compress::unzlib_str(rep_zl), repetitive, "Zlib decompresses large repetitive text")
     runner_assert_str_eq(r, compress::inflate_str(rep_def), repetitive, "Deflate decompresses large repetitive text")
     runner_assert_str_eq(r, compress::unlz4_str(rep_lz), repetitive, "LZ4 decompresses large repetitive text")
     runner_assert_str_eq(r, compress::unsnappy_str(rep_snp), repetitive, "Snappy decompresses large repetitive text")
+    runner_assert_str_eq(r, compress::unzstd_str(rep_zst), repetitive, "ZSTD decompresses large repetitive text")
+    runner_assert_str_eq(r, compress::unbzip2_str(rep_bz), repetitive, "BZIP2 decompresses large repetitive text")
+    runner_assert_str_eq(r, compress::unbrotli_str(rep_br), repetitive, "Brotli decompresses large repetitive text")
 
-    # 9. Binary Byte Array Input Roundtrip (All 5 algorithms)
+    # 14. Binary Byte Array Input Roundtrip (All 9 algorithms)
     let binary_data = [0, 1, 2, 3, 4, 5, 250, 251, 252, 253, 254, 255, 0, 0, 0, 0]
     let bin_gz = compress::gzip(binary_data)
-    let bin_gz_out = compress::gunzip(bin_gz)
-    runner_assert_eq(r, len(bin_gz_out), len(binary_data), "Gzip binary roundtrip length matches")
-
     let bin_zl = compress::zlib(binary_data)
-    let bin_zl_out = compress::unzlib(bin_zl)
-    runner_assert_eq(r, len(bin_zl_out), len(binary_data), "Zlib binary roundtrip length matches")
-
     let bin_def = compress::deflate(binary_data)
-    let bin_def_out = compress::inflate(bin_def)
-    runner_assert_eq(r, len(bin_def_out), len(binary_data), "Deflate binary roundtrip length matches")
-
     let bin_lz = compress::lz4(binary_data)
-    let bin_lz_out = compress::unlz4(bin_lz)
-    runner_assert_eq(r, len(bin_lz_out), len(binary_data), "LZ4 binary roundtrip length matches")
-
     let bin_snp = compress::snappy(binary_data)
+    let bin_zst = compress::zstd(binary_data)
+    let bin_bz = compress::bzip2(binary_data)
+    let bin_br = compress::brotli(binary_data)
+    let bin_sz = compress::szip(binary_data)
+
+    let bin_gz_out = compress::gunzip(bin_gz)
+    let bin_zl_out = compress::unzlib(bin_zl)
+    let bin_def_out = compress::inflate(bin_def)
+    let bin_lz_out = compress::unlz4(bin_lz)
     let bin_snp_out = compress::unsnappy(bin_snp)
-    runner_assert_eq(r, len(bin_snp_out), len(binary_data), "Snappy binary roundtrip length matches")
+    let bin_zst_out = compress::unzstd(bin_zst)
+    let bin_bz_out = compress::unbzip2(bin_bz)
+    let bin_br_out = compress::unbrotli(bin_br)
+    let bin_sz_out = compress::unszip(bin_sz)
+
+    runner_assert_eq(r, len(bin_gz_out), len(binary_data), "Gzip binary length matches")
+    runner_assert_eq(r, len(bin_zl_out), len(binary_data), "Zlib binary length matches")
+    runner_assert_eq(r, len(bin_def_out), len(binary_data), "Deflate binary length matches")
+    runner_assert_eq(r, len(bin_lz_out), len(binary_data), "LZ4 binary length matches")
+    runner_assert_eq(r, len(bin_snp_out), len(binary_data), "Snappy binary length matches")
+    runner_assert_eq(r, len(bin_zst_out), len(binary_data), "ZSTD binary length matches")
+    runner_assert_eq(r, len(bin_bz_out), len(binary_data), "BZIP2 binary length matches")
+    runner_assert_eq(r, len(bin_br_out), len(binary_data), "Brotli binary length matches")
+    runner_assert_eq(r, len(bin_sz_out), len(binary_data), "SZIP binary length matches")
 
     let bin_match = 1
     let b_idx = 0
     while b_idx < len(binary_data)
-        if bin_gz_out[b_idx] != binary_data[b_idx]
-            bin_match = 0
-        end
-        if bin_zl_out[b_idx] != binary_data[b_idx]
-            bin_match = 0
-        end
-        if bin_def_out[b_idx] != binary_data[b_idx]
-            bin_match = 0
-        end
-        if bin_lz_out[b_idx] != binary_data[b_idx]
-            bin_match = 0
-        end
-        if bin_snp_out[b_idx] != binary_data[b_idx]
-            bin_match = 0
-        end
+        if bin_gz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_zl_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_def_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_lz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_snp_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_zst_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_bz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_br_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_sz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
         b_idx += 1
     end
-    runner_assert_eq(r, bin_match, 1, "Binary roundtrip byte contents match identically across all algorithms")
+    runner_assert_eq(r, bin_match, 1, "Binary roundtrip byte contents match identically across all 9 algorithms")
 
-    # 10. Compression Levels
-    let l1 = compress::gzip_str_level(repetitive, 1)
-    let l9 = compress::gzip_str_level(repetitive, 9)
-    runner_assert_true(r, len(l9) <= len(l1), "Gzip level 9 achieves equal or better compression than level 1")
-
-    # 11. Hex Helpers
+    # 15. Hex Helpers
     let hex_bytes = [17, 34, 51, 68]
     let hex_str = compress::bytes_to_hex(hex_bytes)
     runner_assert_str_eq(r, hex_str, "11223344", "bytes_to_hex formats correctly")

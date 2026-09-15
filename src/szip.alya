@@ -1,0 +1,145 @@
+# SZIP - Simple ZIP archive and buffer compression toolkit
+# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
+import "std/mem"
+import "ffi.alya"
+import "types.alya"
+import "deflate.alya"
+
+# --- In-memory Buffer Compression (Szip / Simple Zip Deflate) ---
+
+function szip_compress(bytes)
+    return deflate_compress(bytes)
+end
+
+function szip_compress_str(text)
+    return deflate_compress_str(text)
+end
+
+function szip_decompress(bytes)
+    return deflate_decompress(bytes)
+end
+
+function szip_decompress_str(bytes)
+    return deflate_decompress_str(bytes)
+end
+
+# --- ZIP Archive Management ---
+
+# Creates a new empty ZIP archive at the given file path.
+function szip_create(zip_path)
+    let rc = alya_szip_create_archive(zip_path)
+    if rc != 0
+        throw "Failed to create ZIP archive '" + zip_path + "', error: " + str(rc)
+    end
+    return true
+end
+
+# Adds a binary byte array as an entry in the ZIP archive.
+function szip_add_data(zip_path, archive_name, bytes)
+    let prep = prepare_bytes_input(bytes)
+    let src_ptr = prep[0]
+    let src_len = prep[1]
+    let rc = alya_szip_add_mem(zip_path, archive_name, src_ptr, src_len, LEVEL_DEFAULT)
+    free_prepared_input(prep)
+    if rc != 0
+        throw "Failed to add '" + archive_name + "' to ZIP archive '" + zip_path + "', error: " + str(rc)
+    end
+    return true
+end
+
+# Adds a text string as an entry in the ZIP archive.
+function szip_add_text(zip_path, archive_name, text)
+    let prep = prepare_string_input(text)
+    let src_ptr = prep[0]
+    let src_len = prep[1]
+    let rc = alya_szip_add_mem(zip_path, archive_name, src_ptr, src_len, LEVEL_DEFAULT)
+    if rc != 0
+        throw "Failed to add text '" + archive_name + "' to ZIP archive '" + zip_path + "', error: " + str(rc)
+    end
+    return true
+end
+
+# Returns the number of files contained in the ZIP archive.
+function szip_num_files(zip_path)
+    let count = alya_szip_get_num_files(zip_path)
+    if count < 0
+        throw "Failed to read ZIP archive '" + zip_path + "'"
+    end
+    return count
+end
+
+# Returns a list of filenames contained within the ZIP archive.
+function szip_list(zip_path)
+    let count = szip_num_files(zip_path)
+    let res = []
+    let buf = alloc(1024)
+    let i = 0
+    while i < count
+        let rc = alya_szip_get_filename(zip_path, i, buf, 1024)
+        if rc == 0
+            let name = str_clone(str_from_ptr(buf))
+            res.push(name)
+        end
+        i += 1
+    end
+    free(buf)
+    return res
+end
+
+# Extracts a file from the ZIP archive and returns its raw byte contents.
+function szip_extract_data(zip_path, archive_name)
+    let p_out_ptr = alloc(8)
+    let p_out_len = alloc(8)
+    poke_int(p_out_ptr, 0, 0)
+    poke_int(p_out_len, 0, 0)
+
+    let rc = alya_szip_extract_to_mem(zip_path, archive_name, p_out_ptr, p_out_len)
+    if rc != 0
+        free(p_out_ptr)
+        free(p_out_len)
+        throw "Failed to extract '" + archive_name + "' from ZIP archive '" + zip_path + "', error: " + str(rc)
+    end
+
+    let out_ptr = peek_int(p_out_ptr, 0)
+    let out_len = peek_int(p_out_len, 0)
+    free(p_out_ptr)
+    free(p_out_len)
+
+    let result = ptr_to_byte_list(out_ptr, out_len)
+    alya_free_buffer(out_ptr)
+    return result
+end
+
+# Extracts a file from the ZIP archive and returns its contents as a UTF-8 string.
+function szip_extract_text(zip_path, archive_name)
+    let p_out_ptr = alloc(8)
+    let p_out_len = alloc(8)
+    poke_int(p_out_ptr, 0, 0)
+    poke_int(p_out_len, 0, 0)
+
+    let rc = alya_szip_extract_to_mem(zip_path, archive_name, p_out_ptr, p_out_len)
+    if rc != 0
+        free(p_out_ptr)
+        free(p_out_len)
+        throw "Failed to extract text '" + archive_name + "' from ZIP archive '" + zip_path + "', error: " + str(rc)
+    end
+
+    let out_ptr = peek_int(p_out_ptr, 0)
+    let out_len = peek_int(p_out_len, 0)
+    free(p_out_ptr)
+    free(p_out_len)
+
+    let result = ptr_to_string(out_ptr, out_len)
+    alya_free_buffer(out_ptr)
+    return result
+end
+
+# Extracts a file from the ZIP archive directly to a destination path on disk.
+function szip_extract_to_file(zip_path, archive_name, dst_path)
+    let rc = alya_szip_extract_to_file(zip_path, archive_name, dst_path)
+    if rc != 0
+        throw "Failed to extract '" + archive_name + "' to '" + dst_path + "', error: " + str(rc)
+    end
+    return true
+end

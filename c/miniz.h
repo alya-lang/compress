@@ -1,6 +1,7 @@
 #ifndef MINIZ_EXPORT
 #define MINIZ_EXPORT
 #endif
+
 /* miniz.c 3.1.2 - public domain deflate/inflate, zlib-subset, ZIP reading/writing/appending, PNG writing
    See "unlicense" statement at the end of this file.
    Rich Geldreich <richgel99@gmail.com>, last updated Oct. 13, 2013
@@ -616,6 +617,7 @@ extern "C"
 
 
 
+
 #pragma once
 #include <assert.h>
 #include <stdint.h>
@@ -705,7 +707,8 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
- #pragma once
+
+#pragma once
 
 
 #ifndef MINIZ_NO_DEFLATE_APIS
@@ -904,7 +907,8 @@ enum
 #endif
 
 #endif /*#ifndef MINIZ_NO_DEFLATE_APIS*/
- #pragma once
+
+#pragma once
 
 /* ------------------- Low-level Decompression API Definitions */
 
@@ -1054,7 +1058,8 @@ typedef mz_uint32 tinfl_bit_buf_t;
 #endif
 
 #endif /*#ifndef MINIZ_NO_INFLATE_APIS*/
- 
+
+
 #pragma once
 
 

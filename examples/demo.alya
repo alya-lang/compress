@@ -1,11 +1,13 @@
-# Real-world demonstration of compression algorithms and checksums in Alya
-# Supported: GZIP, ZLIB, Raw DEFLATE, LZ4, Google Snappy, CRC-32, Adler-32
+# Real-world demonstration of all 9 compression modules and checksums in Alya
+# Supported: Brotli, Bzip2, Deflate, Gzip, LZ, Snappy, Szip, Zlib, Zstd
 
+import "std/fs"
 import "../src/lib.alya" as compress
 
 function main()
     say "============================================================"
     say "       Alya Compression Toolkit (compress v" + compress::compress_version() + ")      "
+    say "       9 Lossless Compression Modules + ZIP Archives        "
     say "============================================================"
 
     let text = "The Alya Programming Language is built for speed, simplicity, and safety. "
@@ -23,26 +25,19 @@ function main()
     say "    CRC-32   : " + str(crc)
     say "    Adler-32 : " + str(adler) + "\n"
 
-    # 2. GZIP (RFC 1952)
-    let gz = compress::gzip_str(text)
-    let gz_restored = compress::gunzip_str(gz)
-    let gz_hex = compress::bytes_to_hex(gz)
-    let gz_preview = gz_hex
-    if len(gz_preview) > 32
-        gz_preview = gz_preview[0] + gz_preview[1] + gz_preview[2] + gz_preview[3] + "..."
-    end
-    say "[2] GZIP Compression (RFC 1952):"
-    say "    Compressed size: " + str(len(gz)) + " bytes"
-    say "    Verified match : " + str(gz_restored == text)
-    say "    Hex Header     : " + str(gz[0]) + " " + str(gz[1]) + " (ID1=0x1F, ID2=0x8B)\n"
+    # 2. Brotli (RFC 7932)
+    let br = compress::brotli_str(text)
+    let br_restored = compress::unbrotli_str(br)
+    say "[2] Brotli Compression (RFC 7932):"
+    say "    Compressed size: " + str(len(br)) + " bytes"
+    say "    Verified match : " + str(br_restored == text) + "\n"
 
-    # 3. ZLIB (RFC 1950)
-    let zl = compress::zlib_str(text)
-    let zl_restored = compress::unzlib_str(zl)
-    say "[3] ZLIB Compression (RFC 1950):"
-    say "    Compressed size: " + str(len(zl)) + " bytes"
-    say "    Verified match : " + str(zl_restored == text)
-    say "    Header Byte    : 0x" + str(zl[0]) + "\n"
+    # 3. Bzip2 (Burrows-Wheeler)
+    let bz = compress::bzip2_str(text)
+    let bz_restored = compress::unbzip2_str(bz)
+    say "[3] Bzip2 Compression:"
+    say "    Compressed size: " + str(len(bz)) + " bytes"
+    say "    Verified match : " + str(bz_restored == text) + "\n"
 
     # 4. Raw DEFLATE (RFC 1951)
     let def = compress::deflate_str(text)
@@ -51,33 +46,78 @@ function main()
     say "    Compressed size: " + str(len(def)) + " bytes"
     say "    Verified match : " + str(def_restored == text) + "\n"
 
-    # 5. LZ4 Real-time Compression
+    # 5. GZIP (RFC 1952)
+    let gz = compress::gzip_str(text)
+    let gz_restored = compress::gunzip_str(gz)
+    say "[5] GZIP Compression (RFC 1952):"
+    say "    Compressed size: " + str(len(gz)) + " bytes"
+    say "    Verified match : " + str(gz_restored == text)
+    say "    Header Bytes   : ID1=" + str(gz[0]) + ", ID2=" + str(gz[1]) + "\n"
+
+    # 6. LZ / LZ4 Real-time Compression
     let lz = compress::lz4_str(text)
     let lz_restored = compress::unlz4_str(lz)
-    say "[5] LZ4 Real-time Compression:"
+    say "[6] LZ / LZ4 Real-time Compression:"
     say "    Compressed size: " + str(len(lz)) + " bytes"
     say "    Verified match : " + str(lz_restored == text) + "\n"
 
-    # 6. Google Snappy Compression
+    # 7. Google Snappy
     let snp = compress::snappy_str(text)
     let snp_restored = compress::unsnappy_str(snp)
-    say "[6] Google Snappy Compression:"
+    say "[7] Google Snappy Compression:"
     say "    Compressed size: " + str(len(snp)) + " bytes"
     say "    Verified match : " + str(snp_restored == text) + "\n"
 
-    # 7. Comparison Summary
+    # 8. SZIP / Simple ZIP Buffer & Archive
+    let sz = compress::szip_str(text)
+    let sz_restored = compress::unszip_str(sz)
+    let zip_demo_path = "demo_archive.zip"
+    if file_exists(zip_demo_path)
+        remove_file(zip_demo_path)
+    end
+    compress::szip_create(zip_demo_path)
+    compress::szip_add_text(zip_demo_path, "alya_info.txt", text)
+    let zip_entries = compress::szip_list(zip_demo_path)
+    let zip_extracted = compress::szip_extract_text(zip_demo_path, "alya_info.txt")
+    if file_exists(zip_demo_path)
+        remove_file(zip_demo_path)
+    end
+    say "[8] SZIP Buffer & ZIP Archive:"
+    say "    Buffer comp. size: " + str(len(sz)) + " bytes"
+    say "    Archive entries  : " + str(len(zip_entries)) + " file (" + zip_entries[0] + ")"
+    say "    Archive extract  : " + str(zip_extracted == text) + "\n"
+
+    # 9. ZLIB (RFC 1950)
+    let zl = compress::zlib_str(text)
+    let zl_restored = compress::unzlib_str(zl)
+    say "[9] ZLIB Compression (RFC 1950):"
+    say "    Compressed size: " + str(len(zl)) + " bytes"
+    say "    Verified match : " + str(zl_restored == text) + "\n"
+
+    # 10. ZSTD (Zstandard)
+    let zst = compress::zstd_str(text)
+    let zst_restored = compress::unzstd_str(zst)
+    say "[10] Zstandard (ZSTD):"
+    say "     Compressed size: " + str(len(zst)) + " bytes"
+    say "     Verified match : " + str(zst_restored == text) + "\n"
+
+    # Summary Comparison Table
     say "============================================================"
     say "                      Summary Comparison                    "
     say "============================================================"
     say "  Algorithm     | Original | Compressed | Status"
     say "  --------------+----------+------------+--------"
-    say "  GZIP          | " + str(orig_size) + " B    | " + str(len(gz)) + " B       | Roundtrip OK"
-    say "  ZLIB          | " + str(orig_size) + " B    | " + str(len(zl)) + " B       | Roundtrip OK"
-    say "  Raw DEFLATE   | " + str(orig_size) + " B    | " + str(len(def)) + " B       | Roundtrip OK"
-    say "  LZ4           | " + str(orig_size) + " B    | " + str(len(lz)) + " B       | Roundtrip OK"
-    say "  Snappy        | " + str(orig_size) + " B    | " + str(len(snp)) + " B       | Roundtrip OK"
+    say "  Brotli        | " + str(orig_size) + " B    | " + str(len(br)) + " B       | OK"
+    say "  Bzip2         | " + str(orig_size) + " B    | " + str(len(bz)) + " B       | OK"
+    say "  Raw DEFLATE   | " + str(orig_size) + " B    | " + str(len(def)) + " B       | OK"
+    say "  GZIP          | " + str(orig_size) + " B    | " + str(len(gz)) + " B       | OK"
+    say "  LZ / LZ4      | " + str(orig_size) + " B    | " + str(len(lz)) + " B       | OK"
+    say "  Snappy        | " + str(orig_size) + " B    | " + str(len(snp)) + " B       | OK"
+    say "  SZIP          | " + str(orig_size) + " B    | " + str(len(sz)) + " B       | OK"
+    say "  ZLIB          | " + str(orig_size) + " B    | " + str(len(zl)) + " B       | OK"
+    say "  ZSTD          | " + str(orig_size) + " B    | " + str(len(zst)) + " B       | OK"
     say "============================================================"
-    say "All compression and decompression cycles completed successfully!"
+    say "All 9 compression modules and ZIP archive cycles verified!"
 end
 
 main()

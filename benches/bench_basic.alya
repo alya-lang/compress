@@ -5,7 +5,7 @@ import "std/bench"
 import "../src/lib.alya" as compress
 
 function main()
-    let runner = bench_runner("Compression & Checksums Micro-Benchmarks")
+    let runner = bench_runner("Compression 9-Module Micro-Benchmarks")
 
     let payload = "Alya is a modern, high-performance programming language designed for systems and ecosystem tooling. "
     payload += "Fast execution, direct C FFI, and zero runtime dependencies make it ideal for high throughput services."
@@ -15,6 +15,10 @@ function main()
     let def_data = compress::deflate_str(payload)
     let lz_data = compress::lz4_str(payload)
     let snp_data = compress::snappy_str(payload)
+    let zst_data = compress::zstd_str(payload)
+    let bz_data = compress::bzip2_str(payload)
+    let br_data = compress::brotli_str(payload)
+    let sz_data = compress::szip_str(payload)
 
     # 1. Gzip Compression (10,000 calls)
     bench_start(runner, 10000)
@@ -106,7 +110,70 @@ function main()
     end
     bench_stop(runner, "unsnappy_str() 25k calls")
 
-    # 11. CRC-32 Checksum (50,000 calls)
+    # 11. ZSTD Fast Compression (10,000 calls)
+    bench_start(runner, 10000)
+    let zsi = 0
+    while zsi < 10000
+        compress::zstd_str(payload)
+        zsi += 1
+    end
+    bench_stop(runner, "zstd_str() 10k calls")
+
+    # 12. ZSTD Decompression (25,000 calls)
+    bench_start(runner, 25000)
+    let zsdi = 0
+    while zsdi < 25000
+        compress::unzstd_str(zst_data)
+        zsdi += 1
+    end
+    bench_stop(runner, "unzstd_str() 25k calls")
+
+    # 13. BZIP2 Compression (2,000 calls)
+    bench_start(runner, 2000)
+    let bzi = 0
+    while bzi < 2000
+        compress::bzip2_str(payload)
+        bzi += 1
+    end
+    bench_stop(runner, "bzip2_str() 2k calls")
+
+    # 14. BZIP2 Decompression (5,000 calls)
+    bench_start(runner, 5000)
+    let bzdi = 0
+    while bzdi < 5000
+        compress::unbzip2_str(bz_data)
+        bzdi += 1
+    end
+    bench_stop(runner, "unbzip2_str() 5k calls")
+
+    # 15. Brotli Compression (2,000 calls)
+    bench_start(runner, 2000)
+    let bri = 0
+    while bri < 2000
+        compress::brotli_str(payload)
+        bri += 1
+    end
+    bench_stop(runner, "brotli_str() 2k calls")
+
+    # 16. Brotli Decompression (10,000 calls)
+    bench_start(runner, 10000)
+    let brdi = 0
+    while brdi < 10000
+        compress::unbrotli_str(br_data)
+        brdi += 1
+    end
+    bench_stop(runner, "unbrotli_str() 10k calls")
+
+    # 17. SZIP Buffer Roundtrip (10,000 calls)
+    bench_start(runner, 10000)
+    let szi = 0
+    while szi < 10000
+        compress::szip_str(payload)
+        szi += 1
+    end
+    bench_stop(runner, "szip_str() 10k calls")
+
+    # 18. CRC-32 Checksum (50,000 calls)
     bench_start(runner, 50000)
     let ci = 0
     while ci < 50000
@@ -115,7 +182,7 @@ function main()
     end
     bench_stop(runner, "crc32_str() 50k calls")
 
-    # 12. Adler-32 Checksum (50,000 calls)
+    # 19. Adler-32 Checksum (50,000 calls)
     bench_start(runner, 50000)
     let ai = 0
     while ai < 50000

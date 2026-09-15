@@ -2,6 +2,10 @@
 #include "miniz.h"
 #include "lz4.h"
 #include "snappy.h"
+#include "zstd.h"
+#include "bzip2/bzlib.h"
+#include "brotli/encode.h"
+#include "brotli/decode.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +33,18 @@ size_t alya_snappy_bound(size_t src_len) {
     return snappy_max_compressed_length(src_len);
 }
 
+size_t alya_zstd_bound(size_t src_len) {
+    return ZSTD_compressBound(src_len);
+}
+
+size_t alya_bzip2_bound(size_t src_len) {
+    return src_len + (src_len / 100) + 600;
+}
+
+size_t alya_brotli_bound(size_t src_len) {
+    return BrotliEncoderMaxCompressedSize(src_len);
+}
+
 /* --- Size Queries --- */
 
 int alya_snappy_uncompressed_len(const uint8_t *src, size_t src_len, size_t *out_len) {
@@ -52,6 +68,18 @@ int alya_gzip_uncompressed_len(const uint8_t *src, size_t src_len, size_t *out_l
                      ((uint32_t)src[src_len - 1] << 24);
     *out_len = (size_t)isize;
     return 0;
+}
+
+int alya_zstd_uncompressed_len(const uint8_t *src, size_t src_len, size_t *out_len) {
+    if (!src || !out_len || src_len == 0) {
+        return -1;
+    }
+    unsigned long long cs = ZSTD_getFrameContentSize(src, src_len);
+    if (cs != ZSTD_CONTENTSIZE_UNKNOWN && cs != ZSTD_CONTENTSIZE_ERROR) {
+        *out_len = (size_t)cs;
+        return 0;
+    }
+    return -1;
 }
 
 /* --- Compression --- */
@@ -185,6 +213,49 @@ int alya_snappy_compress(const uint8_t *src, size_t src_len, uint8_t *dst, size_
     return -2;
 }
 
+int alya_zstd_compress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len, int level) {
+    if (!src || !dst || !dst_len) {
+        return -1;
+    }
+    if (level <= 0) {
+        level = 3;
+    }
+    size_t c_size = ZSTD_compress(dst, *dst_len, src, src_len, level);
+    if (ZSTD_isError(c_size)) {
+        return -2;
+    }
+    *dst_len = c_size;
+    return 0;
+}
+
+int alya_bzip2_compress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len, int level) {
+    if (!src || !dst || !dst_len) {
+        return -1;
+    }
+    if (level < 1 || level > 9) {
+        level = 9;
+    }
+    unsigned int d_len = (unsigned int)*dst_len;
+    int rc = BZ2_bzBuffToBuffCompress((char *)dst, &d_len, (char *)src, (unsigned int)src_len, level, 0, 30);
+    if (rc == BZ_OK) {
+        *dst_len = (size_t)d_len;
+        return 0;
+    }
+    return rc;
+}
+
+int alya_brotli_compress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len, int quality) {
+    if (!src || !dst || !dst_len) {
+        return -1;
+    }
+    if (quality < 0 || quality > 11) {
+        quality = BROTLI_DEFAULT_QUALITY;
+    }
+    BROTLI_BOOL ok = BrotliEncoderCompress(quality, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE,
+                                           src_len, src, dst_len, dst);
+    return ok ? 0 : -1;
+}
+
 /* --- Fixed-Buffer Decompression --- */
 
 int alya_deflate_decompress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len) {
@@ -311,6 +382,39 @@ int alya_snappy_decompress(const uint8_t *src, size_t src_len, uint8_t *dst, siz
         return 0;
     }
     return -3;
+}
+
+int alya_zstd_decompress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len) {
+    if (!src || !dst || !dst_len) {
+        return -1;
+    }
+    size_t d_size = ZSTD_decompress(dst, *dst_len, src, src_len);
+    if (ZSTD_isError(d_size)) {
+        return -2;
+    }
+    *dst_len = d_size;
+    return 0;
+}
+
+int alya_bzip2_decompress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len) {
+    if (!src || !dst || !dst_len) {
+        return -1;
+    }
+    unsigned int d_len = (unsigned int)*dst_len;
+    int rc = BZ2_bzBuffToBuffDecompress((char *)dst, &d_len, (char *)src, (unsigned int)src_len, 0, 0);
+    if (rc == BZ_OK) {
+        *dst_len = (size_t)d_len;
+        return 0;
+    }
+    return rc;
+}
+
+int alya_brotli_decompress(const uint8_t *src, size_t src_len, uint8_t *dst, size_t *dst_len) {
+    if (!src || !dst || !dst_len) {
+        return -1;
+    }
+    BrotliDecoderResult res = BrotliDecoderDecompress(src_len, src, dst_len, dst);
+    return (res == BROTLI_DECODER_RESULT_SUCCESS) ? 0 : -1;
 }
 
 /* --- Auto-Allocating Dynamic Decompression --- */
@@ -520,6 +624,240 @@ int alya_snappy_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **ou
     return 0;
 }
 
+int alya_zstd_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **out_buf, size_t *out_len) {
+    if (!src || !out_buf || !out_len || src_len == 0) {
+        return -1;
+    }
+    unsigned long long content_size = ZSTD_getFrameContentSize(src, src_len);
+    size_t cap;
+    if (content_size != ZSTD_CONTENTSIZE_UNKNOWN && content_size != ZSTD_CONTENTSIZE_ERROR) {
+        cap = (size_t)content_size;
+    } else {
+        cap = src_len * 4 + 4096;
+    }
+    uint8_t *buf = (uint8_t *)malloc(cap + 1);
+    if (!buf) {
+        return -5;
+    }
+
+    size_t d_size = ZSTD_decompress(buf, cap, src, src_len);
+    if (ZSTD_isError(d_size)) {
+        free(buf);
+        return -2;
+    }
+    buf[d_size] = '\0';
+    *out_buf = buf;
+    *out_len = d_size;
+    return 0;
+}
+
+int alya_bzip2_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **out_buf, size_t *out_len) {
+    if (!src || !out_buf || !out_len || src_len == 0) {
+        return -1;
+    }
+    size_t cap = src_len > 1024 ? src_len * 4 : 4096;
+    uint8_t *buf = (uint8_t *)malloc(cap + 1);
+    if (!buf) {
+        return -5;
+    }
+
+    bz_stream strm;
+    memset(&strm, 0, sizeof(strm));
+    int rc = BZ2_bzDecompressInit(&strm, 0, 0);
+    if (rc != BZ_OK) {
+        free(buf);
+        return rc;
+    }
+
+    strm.next_in = (char *)src;
+    strm.avail_in = (unsigned int)src_len;
+
+    while (1) {
+        strm.next_out = (char *)(buf + strm.total_out_lo32);
+        strm.avail_out = (unsigned int)(cap - strm.total_out_lo32);
+
+        rc = BZ2_bzDecompress(&strm);
+        if (rc == BZ_STREAM_END) {
+            break;
+        }
+        if (rc == BZ_OK) {
+            size_t new_cap = cap * 2;
+            uint8_t *new_buf = (uint8_t *)realloc(buf, new_cap + 1);
+            if (!new_buf) {
+                BZ2_bzDecompressEnd(&strm);
+                free(buf);
+                return -5;
+            }
+            buf = new_buf;
+            cap = new_cap;
+            continue;
+        }
+        BZ2_bzDecompressEnd(&strm);
+        free(buf);
+        return rc;
+    }
+
+    size_t total = (size_t)strm.total_out_lo32;
+    buf[total] = '\0';
+    *out_len = total;
+    *out_buf = buf;
+    BZ2_bzDecompressEnd(&strm);
+    return 0;
+}
+
+int alya_brotli_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **out_buf, size_t *out_len) {
+    if (!src || !out_buf || !out_len || src_len == 0) {
+        return -1;
+    }
+    size_t cap = src_len > 1024 ? src_len * 4 : 4096;
+    uint8_t *buf = (uint8_t *)malloc(cap + 1);
+    if (!buf) {
+        return -5;
+    }
+
+    BrotliDecoderState *state = BrotliDecoderCreateInstance(NULL, NULL, NULL);
+    if (!state) {
+        free(buf);
+        return -1;
+    }
+
+    size_t avail_in = src_len;
+    const uint8_t *next_in = src;
+    size_t total_out = 0;
+
+    while (1) {
+        size_t avail_out = cap - total_out;
+        uint8_t *next_out = buf + total_out;
+
+        BrotliDecoderResult res = BrotliDecoderDecompressStream(state, &avail_in, &next_in, &avail_out, &next_out, &total_out);
+        if (res == BROTLI_DECODER_RESULT_SUCCESS) {
+            break;
+        }
+        if (res == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT) {
+            size_t new_cap = cap * 2;
+            uint8_t *new_buf = (uint8_t *)realloc(buf, new_cap + 1);
+            if (!new_buf) {
+                BrotliDecoderDestroyInstance(state);
+                free(buf);
+                return -5;
+            }
+            buf = new_buf;
+            cap = new_cap;
+            continue;
+        }
+        BrotliDecoderDestroyInstance(state);
+        free(buf);
+        return -1;
+    }
+
+    buf[total_out] = '\0';
+    *out_len = total_out;
+    *out_buf = buf;
+    BrotliDecoderDestroyInstance(state);
+    return 0;
+}
+
+/* --- SZIP Archive Management --- */
+
+int alya_szip_create_archive(const char *zip_filename) {
+    if (!zip_filename) {
+        return -1;
+    }
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    if (!mz_zip_writer_init_file(&zip, zip_filename, 0)) {
+        return -1;
+    }
+    if (!mz_zip_writer_finalize_archive(&zip)) {
+        mz_zip_writer_end(&zip);
+        return -2;
+    }
+    if (!mz_zip_writer_end(&zip)) {
+        return -3;
+    }
+    return 0;
+}
+
+int alya_szip_add_mem(const char *zip_filename, const char *archive_name, const uint8_t *data, size_t data_len, int level) {
+    if (!zip_filename || !archive_name || !data) {
+        return -1;
+    }
+    if (level < 0 || level > 9) {
+        level = MZ_DEFAULT_COMPRESSION;
+    }
+    mz_bool ok = mz_zip_add_mem_to_archive_file_in_place(zip_filename, archive_name, data, data_len, NULL, 0, (mz_uint)level);
+    return ok ? 0 : -2;
+}
+
+int alya_szip_get_num_files(const char *zip_filename) {
+    if (!zip_filename) {
+        return -1;
+    }
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    if (!mz_zip_reader_init_file(&zip, zip_filename, 0)) {
+        return -1;
+    }
+    int count = (int)mz_zip_reader_get_num_files(&zip);
+    mz_zip_reader_end(&zip);
+    return count;
+}
+
+int alya_szip_get_filename(const char *zip_filename, int file_index, char *out_name, size_t max_name_len) {
+    if (!zip_filename || !out_name || file_index < 0) {
+        return -1;
+    }
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    if (!mz_zip_reader_init_file(&zip, zip_filename, 0)) {
+        return -1;
+    }
+    mz_uint actual = mz_zip_reader_get_filename(&zip, (mz_uint)file_index, out_name, (mz_uint)max_name_len);
+    mz_zip_reader_end(&zip);
+    return actual > 0 ? 0 : -2;
+}
+
+int alya_szip_extract_to_mem(const char *zip_filename, const char *archive_name, uint8_t **out_buf, size_t *out_len) {
+    if (!zip_filename || !archive_name || !out_buf || !out_len) {
+        return -1;
+    }
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    if (!mz_zip_reader_init_file(&zip, zip_filename, 0)) {
+        return -1;
+    }
+    size_t uncomp_size = 0;
+    void *p = mz_zip_reader_extract_file_to_heap(&zip, archive_name, &uncomp_size, 0);
+    mz_zip_reader_end(&zip);
+    if (!p) {
+        return -2;
+    }
+    *out_buf = (uint8_t *)p;
+    *out_len = uncomp_size;
+    return 0;
+}
+
+int alya_szip_extract_to_file(const char *zip_filename, const char *archive_name, const char *dst_path) {
+    if (!zip_filename || !archive_name || !dst_path) {
+        return -1;
+    }
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    if (!mz_zip_reader_init_file(&zip, zip_filename, 0)) {
+        return -1;
+    }
+    int file_idx = mz_zip_reader_locate_file(&zip, archive_name, NULL, 0);
+    if (file_idx < 0) {
+        mz_zip_reader_end(&zip);
+        return -2;
+    }
+    mz_bool ok = mz_zip_reader_extract_to_file(&zip, (mz_uint)file_idx, dst_path, 0);
+    mz_zip_reader_end(&zip);
+    return ok ? 0 : -3;
+}
+
+/* --- Memory Buffer Deallocator --- */
+
 void alya_free_buffer(void *ptr) {
     if (ptr) {
         free(ptr);
@@ -529,9 +867,9 @@ void alya_free_buffer(void *ptr) {
 /* --- Checksums --- */
 
 uint32_t alya_crc32(uint32_t crc, const uint8_t *buf, size_t len) {
-    return (uint32_t)mz_crc32(crc ? crc : MZ_CRC32_INIT, buf, len);
+    return (uint32_t)mz_crc32((mz_ulong)crc, buf, (mz_ulong)len);
 }
 
 uint32_t alya_adler32(uint32_t adler, const uint8_t *buf, size_t len) {
-    return (uint32_t)mz_adler32(adler ? adler : MZ_ADLER32_INIT, buf, len);
+    return (uint32_t)mz_adler32((mz_ulong)adler, buf, (mz_ulong)len);
 }
