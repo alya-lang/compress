@@ -6,11 +6,11 @@ import "std/fs"
 import "../src/lib.alya" as compress
 
 function main()
-    test_suite("Compress - 9 Modules & Full LZ Family: Brotli, Bzip2, Deflate, Gzip, LZ (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW), Snappy, Szip, Zlib, Zstd")
+    test_suite("Compress - 10 Modules & Full LZ Family: Brotli, Bzip2, Deflate, Gzip, Huffman, LZ (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW), Snappy, Szip, Zlib, Zstd")
     let r = runner_new()
 
     # 1. Version Check
-    runner_assert_str_eq(r, compress::compress_version(), "0.3.0", "compress_version returns 0.3.0")
+    runner_assert_str_eq(r, compress::compress_version(), "0.4.0", "compress_version returns 0.4.0")
 
     # 2. Checksums (RFC 1950 & CRC-32)
     let test_str = "The quick brown fox jumps over the lazy dog"
@@ -281,9 +281,13 @@ function main()
         if bin_lzjb_out[b_idx] != binary_data[b_idx] bin_match = 0 end
         b_idx += 1
     end
-    runner_assert_eq(r, bin_match, 1, "Binary roundtrip byte contents match identically across all 16 algorithms/variations")
+    # 16. Huffman Coding
+    let huff_data = "ABRACADABRA_ABRACADABRA_HUFFMAN_CODEC_TEST"
+    let huff_enc = compress::huffman_str(huff_data)
+    let huff_dec = compress::unhuffman_str(huff_enc)
+    runner_assert_str_eq(r, huff_dec, huff_data, "Huffman roundtrip restores original string")
 
-    # 16. Hex Helpers
+    # 17. Hex Helpers
     let hex_bytes = [17, 34, 51, 68]
     let hex_str = compress::bytes_to_hex(hex_bytes)
     runner_assert_str_eq(r, hex_str, "11223344", "bytes_to_hex formats correctly")

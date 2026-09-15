@@ -1,0 +1,25 @@
+# Huffman Compression & Coding Showcase
+# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
+import "../src/lib.alya"
+
+say "=== Alya compress: Huffman Coding Showcase ==="
+
+let sample_text = "Huffman coding is an entropy encoding algorithm used for lossless data compression. The algorithm generates prefix-free variable-length codes based on the estimated frequencies of occurrence."
+say "Original Text (" + str(len(sample_text)) + " bytes):"
+say sample_text
+say ""
+
+let compressed = huffman_compress(sample_text)
+say "Compressed Size: " + str(len(compressed)) + " bytes"
+
+let decompressed = huffman_decompress(compressed)
+say "Decompressed Text (" + str(len(decompressed)) + " bytes):"
+say decompressed
+say ""
+
+if sample_text == decompressed
+    say "Roundtrip status: SUCCESS (100% matched)"
+else
+    say "Roundtrip status: FAILED"
+end

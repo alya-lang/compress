@@ -1,14 +1,15 @@
 [package]
 name = "compress"
-version = "0.3.0"
+version = "0.4.0"
 alya-version = "0.0.16"
 entry = "src/lib.alya"
-description = "Comprehensive compression toolkit for Alya (Brotli, Bzip2, Deflate, Gzip, LZ family, Snappy, Szip, Zlib, Zstd)"
+description = "Comprehensive compression toolkit for Alya (Brotli, Bzip2, Deflate, Gzip, Huffman, LZ family, Snappy, Szip, Zlib, Zstd)"
 authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
 license = "MIT"
 homepage = "https://github.com/alya-lang/alya"
 repository = "https://github.com/alya-lang/compress"
-keywords = ["alya", "alya-lang", "package", "compress", "compression", "gzip", "zlib", "deflate", "snappy", "lz", "lz4", "lz77", "lz78", "lzw", "lzss", "lzma", "lzjb", "zstd", "bzip2", "brotli", "szip", "c", "ffi"]
+keywords = ["alya", "alya-lang", "package", "compress", "compression", "huffman", "gzip", "zlib", "deflate", "snappy", "lz", "lz4", "lz77", "lz78", "lzw", "lzss", "lzma", "lzjb", "zstd", "bzip2", "brotli", "szip", "c", "ffi"]
+
 
 [dependencies]
 

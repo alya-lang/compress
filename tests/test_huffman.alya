@@ -1,0 +1,43 @@
+# Tests for Huffman Coding & Compression in Lib/compress
+# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
+import "std/test"
+import "../src/huffman.alya"
+
+test_suite("Alya compress - Huffman Coding Test Suite")
+
+# 1. Standard Roundtrip
+let text1 = "Hello Alya Huffman Compression!"
+let c1 = huffman_compress(text1)
+let d1 = huffman_decompress(c1)
+assert_str_eq(d1, text1, "huffman roundtrip standard text")
+
+# 2. Single Character Text
+let text2 = "ZZZZZZZZZZ"
+let c2 = huffman_compress(text2)
+let d2 = huffman_decompress(c2)
+assert_str_eq(d2, text2, "huffman single repeated character")
+
+# 3. Two Characters Alternating
+let text3 = "ABABABABABABABABABAB"
+let c3 = huffman_compress(text3)
+let d3 = huffman_decompress(c3)
+assert_str_eq(d3, text3, "huffman two alternating characters")
+
+# 4. Long prose with high redundancy
+let text4 = "lossless compression lossless compression data data huffman huffman alya alya language language"
+let c4 = huffman_compress(text4)
+let d4 = huffman_decompress(c4)
+assert_str_eq(d4, text4, "huffman redundant prose")
+
+# 5. Empty input
+let c5 = huffman_compress("")
+let d5 = huffman_decompress(c5)
+assert_str_eq(d5, "", "huffman empty input")
+
+# 6. Aliases huffman_encode / decode
+let c6 = huffman_encode("Alya Language 2026")
+let d6 = huffman_decode(c6)
+assert_str_eq(d6, "Alya Language 2026", "huffman aliases encode/decode")
+
+say "All Huffman tests passed successfully!"

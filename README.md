@@ -25,6 +25,7 @@ Comprehensive, high-performance compression and decompression toolkit for the **
   - `lzss`: Lempel-Ziv-Storer-Szymanski 1982 sliding window algorithm.
   - `lzw`: Lempel-Ziv-Welch 1984 dictionary algorithm (GIF / UNIX compress).
 - **`compress.snappy`** (Google Snappy): High-throughput framing and block compression.
+- **`compress.huffman`**: Pure Alya Canonical Huffman optimal prefix-tree compression and bitstream codec.
 - **`compress.szip`** (miniz ZIP Archive): In-place `.zip` archive creation, listing, file inspection, and extraction.
 - **`compress.zlib`** (RFC 1950): ZLIB standard format with Adler-32 validation.
 - **`compress.zstd`** (Meta / Facebook Zstandard, RFC 8878): Modern high-speed, high-density real-time engine.
@@ -83,11 +84,14 @@ compress/
 │   ├── szip.alya           # Szip compressor & ZIP archive manager
 │   ├── zlib.alya           # ZLIB compressor & decompressor
 │   ├── zstd.alya           # Zstandard compressor & decompressor
+│   ├── huffman.alya        # Pure Alya Canonical Huffman optimal prefix codec
 │   └── checksum.alya       # CRC-32 and Adler-32 utilities
 ├── examples/
-│   └── demo.alya           # Real-world runnable demonstration (all 16 codecs)
+│   ├── demo.alya           # Real-world runnable demonstration (all 16 codecs)
+│   └── huffman_demo.alya   # Huffman compression demonstration
 ├── tests/
-│   └── test_basic.alya     # Automated test suite (104/104 tests passing)
+│   ├── test_basic.alya     # Automated test suite (all 10 modules)
+│   └── test_huffman.alya   # Dedicated Huffman compression test suite
 └── benches/
     └── bench_basic.alya    # Comprehensive 25-method benchmark suite
 ```

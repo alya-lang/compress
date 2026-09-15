@@ -24,6 +24,7 @@ import "bzip2.alya"
 import "brotli.alya"
 import "szip.alya"
 import "checksum.alya"
+import "huffman.alya"
 
 # --- 1. BROTLI (RFC 7932) ---
 function brotli(bytes)
@@ -255,7 +256,32 @@ function unzstd_str(bytes)
     return zstd_decompress_str(bytes)
 end
 
+# --- 10. HUFFMAN (Optimal Prefix Codec) ---
+function huffman(text)
+    return huffman_compress(text)
+end
+
+function huffman_str(text)
+    return huffman_compress(text)
+end
+
+function unhuffman(bytes)
+    return huffman_decompress(bytes)
+end
+
+function unhuffman_str(bytes)
+    return huffman_decompress(bytes)
+end
+
+function huffman_encode_str(text)
+    return huffman_encode(text)
+end
+
+function huffman_decode_str(bytes)
+    return huffman_decode(bytes)
+end
+
 # --- PACKAGE VERSION ---
 function compress_version()
-    return "0.3.0"
+    return "0.4.0"
 end
