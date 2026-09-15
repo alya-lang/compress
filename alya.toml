@@ -1,0 +1,18 @@
+[package]
+name = "compress"
+version = "0.1.0"
+alya-version = "0.0.16"
+entry = "src/lib.alya"
+description = "Comprehensive compression library for Alya (Gzip, Zlib, Deflate, Snappy, LZ4)"
+authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
+license = "MIT"
+homepage = "https://github.com/alya-lang/alya"
+repository = "https://github.com/alya-lang/compress"
+keywords = ["alya", "alya-lang", "package", "compress", "compression", "gzip", "zlib", "deflate", "snappy", "lz4", "c", "ffi"]
+
+[dependencies]
+
+[build]
+c-sources = ["c/compress.c"]
+c-flags = ["-O2"]
+c-include-dirs = ["c"]

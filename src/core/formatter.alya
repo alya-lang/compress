@@ -1,0 +1,12 @@
+# Core formatting logic and internal helpers for compress
+# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
+import "../types.alya"
+
+function core_format_greeting(name)
+    return "Hello, " + name + "!"
+end
+
+function core_format_custom(config)
+    return config.prefix + ", " + config.name + "!"
+end

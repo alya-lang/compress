@@ -1,0 +1,15 @@
+# Example usage of compress
+import "../src/lib.alya" as pkg
+
+function main()
+    # Basic greeting
+    let msg = pkg::hello("Alya Developer")
+    say msg
+
+    # Using configuration struct
+    let cfg = pkg::new_config("Modular Architecture", 5)
+    say "Target: " + cfg.name
+    say "Formatted: " + pkg::core_format_custom(cfg)
+end
+
+main()

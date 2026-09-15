@@ -1,0 +1,37 @@
+# Test suite for compress
+import "std/test"
+import "../src/lib.alya" as pkg
+
+function main()
+    test_suite("compress Test Suite")
+    let r = runner_new()
+
+    # 1. Basic facade function
+    let res = pkg::hello("Alya")
+    runner_assert_str_eq(r, res, "Hello, Alya!", "pkg::hello returns formatted greeting")
+
+    # 2. Default parameter
+    let default_res = pkg::hello()
+    runner_assert_str_eq(r, default_res, "Hello, World!", "pkg::hello() uses default name")
+
+    # 3. Modular types & config constructor
+    let cfg = pkg::new_config("Community", 3)
+    runner_assert_str_eq(r, cfg.name, "Community", "pkg::new_config sets name correctly")
+    runner_assert_str_eq(r, cfg.prefix, "Hello", "pkg::new_config sets default prefix")
+    runner_assert_eq(r, cfg.count, 3, "pkg::new_config sets count correctly")
+
+    # 4. Core custom formatter using struct
+    let custom_res = pkg::core_format_custom(cfg)
+    runner_assert_str_eq(r, custom_res, "Hello, Community!", "pkg::core_format_custom formats using config")
+
+    # 5. Native C FFI verification
+    let c_sum = pkg::c_add(10, 32)
+    runner_assert_eq(r, c_sum, 42, "pkg::c_add executes bundled C code")
+
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()
