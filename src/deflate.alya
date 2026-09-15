@@ -1,0 +1,125 @@
+# RFC 1951 Raw DEFLATE compression and decompression
+# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
+import "std/mem"
+import "ffi.alya"
+import "types.alya"
+
+# Compresses a byte list using raw DEFLATE (level 6).
+function deflate_compress(bytes)
+    return deflate_compress_level(bytes, LEVEL_DEFAULT)
+end
+
+# Compresses a byte list using raw DEFLATE with specified level (1..9).
+function deflate_compress_level(bytes, level)
+    let prep = prepare_bytes_input(bytes)
+    let src_ptr = prep[0]
+    let src_len = prep[1]
+
+    let bound = alya_deflate_bound(src_len)
+    let dst_ptr = alloc(bound + 1)
+    let p_len = alloc(8)
+    poke_int(p_len, 0, bound)
+
+    let rc = alya_deflate_compress(src_ptr, src_len, dst_ptr, p_len, level)
+    free_prepared_input(prep)
+    if rc != 0
+        free(dst_ptr)
+        free(p_len)
+        throw "Deflate compression failed with error code: " + str(rc)
+    end
+
+    let out_len = peek_int(p_len, 0)
+    free(p_len)
+    let result = ptr_to_byte_list(dst_ptr, out_len)
+    free(dst_ptr)
+    return result
+end
+
+# Compresses a string using raw DEFLATE (level 6).
+function deflate_compress_str(text)
+    return deflate_compress_str_level(text, LEVEL_DEFAULT)
+end
+
+# Compresses a string using raw DEFLATE with specified level (1..9).
+function deflate_compress_str_level(text, level)
+    let prep = prepare_string_input(text)
+    let src_ptr = prep[0]
+    let src_len = prep[1]
+
+    let bound = alya_deflate_bound(src_len)
+    let dst_ptr = alloc(bound + 1)
+    let p_len = alloc(8)
+    poke_int(p_len, 0, bound)
+
+    let rc = alya_deflate_compress(src_ptr, src_len, dst_ptr, p_len, level)
+    if rc != 0
+        free(dst_ptr)
+        free(p_len)
+        throw "Deflate compression failed with error code: " + str(rc)
+    end
+
+    let out_len = peek_int(p_len, 0)
+    free(p_len)
+    let result = ptr_to_byte_list(dst_ptr, out_len)
+    free(dst_ptr)
+    return result
+end
+
+# Decompresses raw DEFLATE payload into a byte array.
+function deflate_decompress(bytes)
+    let prep = prepare_bytes_input(bytes)
+    let src_ptr = prep[0]
+    let src_len = prep[1]
+
+    let p_out_ptr = alloc(8)
+    let p_out_len = alloc(8)
+    poke_int(p_out_ptr, 0, 0)
+    poke_int(p_out_len, 0, 0)
+
+    let rc = alya_deflate_decompress_auto(src_ptr, src_len, p_out_ptr, p_out_len)
+    free_prepared_input(prep)
+    if rc != 0
+        free(p_out_ptr)
+        free(p_out_len)
+        throw "Deflate decompression failed with error code: " + str(rc)
+    end
+
+    let out_ptr = peek_int(p_out_ptr, 0)
+    let out_len = peek_int(p_out_len, 0)
+    free(p_out_ptr)
+    free(p_out_len)
+
+    let result = ptr_to_byte_list(out_ptr, out_len)
+    alya_free_buffer(out_ptr)
+    return result
+end
+
+# Decompresses raw DEFLATE payload directly into a UTF-8 string.
+function deflate_decompress_str(bytes)
+    let prep = prepare_bytes_input(bytes)
+    let src_ptr = prep[0]
+    let src_len = prep[1]
+
+    let p_out_ptr = alloc(8)
+    let p_out_len = alloc(8)
+    poke_int(p_out_ptr, 0, 0)
+    poke_int(p_out_len, 0, 0)
+
+    let rc = alya_deflate_decompress_auto(src_ptr, src_len, p_out_ptr, p_out_len)
+    free_prepared_input(prep)
+    if rc != 0
+        free(p_out_ptr)
+        free(p_out_len)
+        throw "Deflate decompression failed with error code: " + str(rc)
+    end
+
+    let out_ptr = peek_int(p_out_ptr, 0)
+    let out_len = peek_int(p_out_len, 0)
+    free(p_out_ptr)
+    free(p_out_len)
+
+    let result = ptr_to_string(out_ptr, out_len)
+    alya_free_buffer(out_ptr)
+    return result
+end

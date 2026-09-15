@@ -1,26 +1,128 @@
-# Benchmark suite for compress
+# Benchmark suite for compress package
+# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
 import "std/bench"
-import "../src/lib.alya" as pkg
+import "../src/lib.alya" as compress
 
 function main()
-    let runner = bench_runner("compress Micro-Benchmarks")
+    let runner = bench_runner("Compression & Checksums Micro-Benchmarks")
 
-    bench_start(runner, 100000)
+    let payload = "Alya is a modern, high-performance programming language designed for systems and ecosystem tooling. "
+    payload += "Fast execution, direct C FFI, and zero runtime dependencies make it ideal for high throughput services."
+
+    let gz_data = compress::gzip_str(payload)
+    let zl_data = compress::zlib_str(payload)
+    let def_data = compress::deflate_str(payload)
+    let lz_data = compress::lz4_str(payload)
+    let snp_data = compress::snappy_str(payload)
+
+    # 1. Gzip Compression (10,000 calls)
+    bench_start(runner, 10000)
     let i = 0
-    while i < 100000
-        pkg::hello("Alya")
+    while i < 10000
+        compress::gzip_str(payload)
         i += 1
     end
-    bench_stop(runner, "hello() 100k calls")
+    bench_stop(runner, "gzip_str() 10k calls")
 
-    bench_start(runner, 50000)
-    let j = 0
-    while j < 50000
-        let cfg = pkg::new_config("Bench", 1)
-        pkg::core_format_custom(cfg)
-        j += 1
+    # 2. Gzip Decompression (10,000 calls)
+    bench_start(runner, 10000)
+    let gzi = 0
+    while gzi < 10000
+        compress::gunzip_str(gz_data)
+        gzi += 1
     end
-    bench_stop(runner, "new_config() + format_custom() 50k calls")
+    bench_stop(runner, "gunzip_str() 10k calls")
+
+    # 3. Zlib Compression (10,000 calls)
+    bench_start(runner, 10000)
+    let zi = 0
+    while zi < 10000
+        compress::zlib_str(payload)
+        zi += 1
+    end
+    bench_stop(runner, "zlib_str() 10k calls")
+
+    # 4. Zlib Decompression (10,000 calls)
+    bench_start(runner, 10000)
+    let zdi = 0
+    while zdi < 10000
+        compress::unzlib_str(zl_data)
+        zdi += 1
+    end
+    bench_stop(runner, "unzlib_str() 10k calls")
+
+    # 5. Deflate Compression (10,000 calls)
+    bench_start(runner, 10000)
+    let di = 0
+    while di < 10000
+        compress::deflate_str(payload)
+        di += 1
+    end
+    bench_stop(runner, "deflate_str() 10k calls")
+
+    # 6. Deflate Decompression (10,000 calls)
+    bench_start(runner, 10000)
+    let ddi = 0
+    while ddi < 10000
+        compress::inflate_str(def_data)
+        ddi += 1
+    end
+    bench_stop(runner, "inflate_str() 10k calls")
+
+    # 7. LZ4 Fast Compression (25,000 calls)
+    bench_start(runner, 25000)
+    let li = 0
+    while li < 25000
+        compress::lz4_str(payload)
+        li += 1
+    end
+    bench_stop(runner, "lz4_str() 25k calls")
+
+    # 8. LZ4 Decompression (25,000 calls)
+    bench_start(runner, 25000)
+    let ldi = 0
+    while ldi < 25000
+        compress::unlz4_str(lz_data)
+        ldi += 1
+    end
+    bench_stop(runner, "unlz4_str() 25k calls")
+
+    # 9. Snappy Fast Compression (25,000 calls)
+    bench_start(runner, 25000)
+    let si = 0
+    while si < 25000
+        compress::snappy_str(payload)
+        si += 1
+    end
+    bench_stop(runner, "snappy_str() 25k calls")
+
+    # 10. Snappy Decompression (25,000 calls)
+    bench_start(runner, 25000)
+    let sdi = 0
+    while sdi < 25000
+        compress::unsnappy_str(snp_data)
+        sdi += 1
+    end
+    bench_stop(runner, "unsnappy_str() 25k calls")
+
+    # 11. CRC-32 Checksum (50,000 calls)
+    bench_start(runner, 50000)
+    let ci = 0
+    while ci < 50000
+        compress::crc32_str(payload)
+        ci += 1
+    end
+    bench_stop(runner, "crc32_str() 50k calls")
+
+    # 12. Adler-32 Checksum (50,000 calls)
+    bench_start(runner, 50000)
+    let ai = 0
+    while ai < 50000
+        compress::adler32_str(payload)
+        ai += 1
+    end
+    bench_stop(runner, "adler32_str() 50k calls")
 
     bench_summary(runner)
 end

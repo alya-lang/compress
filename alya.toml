@@ -13,6 +13,6 @@ keywords = ["alya", "alya-lang", "package", "compress", "compression", "gzip", "
 [dependencies]
 
 [build]
-c-sources = ["c/compress.c"]
+c-sources = ["c/miniz.c", "c/lz4.c", "c/snappy.c", "c/compress.c"]
 c-flags = ["-O2"]
 c-include-dirs = ["c"]

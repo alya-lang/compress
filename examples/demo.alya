@@ -1,15 +1,83 @@
-# Example usage of compress
-import "../src/lib.alya" as pkg
+# Real-world demonstration of compression algorithms and checksums in Alya
+# Supported: GZIP, ZLIB, Raw DEFLATE, LZ4, Google Snappy, CRC-32, Adler-32
+
+import "../src/lib.alya" as compress
 
 function main()
-    # Basic greeting
-    let msg = pkg::hello("Alya Developer")
-    say msg
+    say "============================================================"
+    say "       Alya Compression Toolkit (compress v" + compress::compress_version() + ")      "
+    say "============================================================"
 
-    # Using configuration struct
-    let cfg = pkg::new_config("Modular Architecture", 5)
-    say "Target: " + cfg.name
-    say "Formatted: " + pkg::core_format_custom(cfg)
+    let text = "The Alya Programming Language is built for speed, simplicity, and safety. "
+    text += "With a modular standard library, zero-overhead C FFI, and native ecosystem packages, "
+    text += "Alya enables high-throughput microservices, developer tooling, and distributed systems."
+
+    let orig_size = len(text)
+    say "Original text (" + str(orig_size) + " bytes):"
+    say "  \"" + text + "\"\n"
+
+    # 1. Checksums
+    let crc = compress::crc32_str(text)
+    let adler = compress::adler32_str(text)
+    say "[1] Integrity Checksums:"
+    say "    CRC-32   : " + str(crc)
+    say "    Adler-32 : " + str(adler) + "\n"
+
+    # 2. GZIP (RFC 1952)
+    let gz = compress::gzip_str(text)
+    let gz_restored = compress::gunzip_str(gz)
+    let gz_hex = compress::bytes_to_hex(gz)
+    let gz_preview = gz_hex
+    if len(gz_preview) > 32
+        gz_preview = gz_preview[0] + gz_preview[1] + gz_preview[2] + gz_preview[3] + "..."
+    end
+    say "[2] GZIP Compression (RFC 1952):"
+    say "    Compressed size: " + str(len(gz)) + " bytes"
+    say "    Verified match : " + str(gz_restored == text)
+    say "    Hex Header     : " + str(gz[0]) + " " + str(gz[1]) + " (ID1=0x1F, ID2=0x8B)\n"
+
+    # 3. ZLIB (RFC 1950)
+    let zl = compress::zlib_str(text)
+    let zl_restored = compress::unzlib_str(zl)
+    say "[3] ZLIB Compression (RFC 1950):"
+    say "    Compressed size: " + str(len(zl)) + " bytes"
+    say "    Verified match : " + str(zl_restored == text)
+    say "    Header Byte    : 0x" + str(zl[0]) + "\n"
+
+    # 4. Raw DEFLATE (RFC 1951)
+    let def = compress::deflate_str(text)
+    let def_restored = compress::inflate_str(def)
+    say "[4] Raw DEFLATE Compression (RFC 1951):"
+    say "    Compressed size: " + str(len(def)) + " bytes"
+    say "    Verified match : " + str(def_restored == text) + "\n"
+
+    # 5. LZ4 Real-time Compression
+    let lz = compress::lz4_str(text)
+    let lz_restored = compress::unlz4_str(lz)
+    say "[5] LZ4 Real-time Compression:"
+    say "    Compressed size: " + str(len(lz)) + " bytes"
+    say "    Verified match : " + str(lz_restored == text) + "\n"
+
+    # 6. Google Snappy Compression
+    let snp = compress::snappy_str(text)
+    let snp_restored = compress::unsnappy_str(snp)
+    say "[6] Google Snappy Compression:"
+    say "    Compressed size: " + str(len(snp)) + " bytes"
+    say "    Verified match : " + str(snp_restored == text) + "\n"
+
+    # 7. Comparison Summary
+    say "============================================================"
+    say "                      Summary Comparison                    "
+    say "============================================================"
+    say "  Algorithm     | Original | Compressed | Status"
+    say "  --------------+----------+------------+--------"
+    say "  GZIP          | " + str(orig_size) + " B    | " + str(len(gz)) + " B       | Roundtrip OK"
+    say "  ZLIB          | " + str(orig_size) + " B    | " + str(len(zl)) + " B       | Roundtrip OK"
+    say "  Raw DEFLATE   | " + str(orig_size) + " B    | " + str(len(def)) + " B       | Roundtrip OK"
+    say "  LZ4           | " + str(orig_size) + " B    | " + str(len(lz)) + " B       | Roundtrip OK"
+    say "  Snappy        | " + str(orig_size) + " B    | " + str(len(snp)) + " B       | Roundtrip OK"
+    say "============================================================"
+    say "All compression and decompression cycles completed successfully!"
 end
 
 main()

@@ -1,16 +1,162 @@
-# Types and data structures for compress
+# Types, constants, and memory helpers for compress
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
-struct CompressConfig
-    name
-    prefix
-    count
+import "std/mem"
+
+# --- Compression Levels ---
+let LEVEL_NO_COMPRESSION = 0
+let LEVEL_FASTEST = 1
+let LEVEL_DEFAULT = 6
+let LEVEL_BEST = 9
+
+# --- Format Identifiers ---
+let FORMAT_DEFLATE = "deflate"
+let FORMAT_ZLIB = "zlib"
+let FORMAT_GZIP = "gzip"
+let FORMAT_LZ4 = "lz4"
+let FORMAT_SNAPPY = "snappy"
+
+# --- Configuration Structs ---
+struct CompressOptions
+    level
 end
 
-function make_config(name = "World", count = 1)
-    return CompressConfig {
-        name: name,
-        prefix: "Hello",
-        count: count
-    }
+function default_compress_options()
+    return CompressOptions(LEVEL_DEFAULT)
+end
+
+# --- Data Preparation Helpers ---
+
+function prepare_bytes_input(bytes)
+    let n = len(bytes)
+    let p = alloc(n + 1)
+    let i = 0
+    while i < n
+        poke_byte(p, i, bytes[i])
+        i += 1
+    end
+    poke_byte(p, n, 0)
+    return [p, n, 1]
+end
+
+function prepare_string_input(text)
+    let slen = len(text)
+    let p = str_to_ptr(text)
+    return [p, slen, 0]
+end
+
+# Frees temporary input buffer if it was allocated dynamically.
+function free_prepared_input(prep)
+    if prep[2] == 1
+        free(prep[0])
+    end
+end
+
+# Converts a contiguous C byte buffer at 'ptr' of size 'len' into an Alya list of bytes.
+function ptr_to_byte_list(ptr, len)
+    let res = []
+    let i = 0
+    while i < len
+        res.push(peek_byte(ptr, i))
+        i += 1
+    end
+    return res
+end
+
+# Converts a contiguous C byte buffer at 'ptr' of size 'len' into an Alya string.
+function ptr_to_string(ptr, len)
+    if len == 0
+        return ""
+    end
+    poke_byte(ptr, len, 0)
+    return str_clone(str_from_ptr(ptr))
+end
+
+# Converts an Alya string into a list of byte integers [0..255].
+function bytes_from_string(s)
+    let p = str_to_ptr(s)
+    let slen = len(s)
+    let res = []
+    let i = 0
+    while i < slen
+        res.push(peek_byte(p, i))
+        i += 1
+    end
+    return res
+end
+
+# Converts an Alya list of byte integers [0..255] into a UTF-8 string.
+function bytes_to_string(bytes)
+    let n = len(bytes)
+    if n == 0
+        return ""
+    end
+    let p = alloc(n + 1)
+    let i = 0
+    while i < n
+        poke_byte(p, i, bytes[i])
+        i += 1
+    end
+    poke_byte(p, n, 0)
+    let s = str_clone(str_from_ptr(p))
+    free(p)
+    return s
+end
+
+# Converts a list of bytes into a lowercase hexadecimal string.
+function bytes_to_hex(bytes)
+    let hex_chars = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+    let out = ""
+    let i = 0
+    let n = len(bytes)
+    while i < n
+        let b = bytes[i]
+        let hi = bit_shr(b, 4)
+        let lo = bit_and(b, 15)
+        out = out + hex_chars[hi] + hex_chars[lo]
+        i += 1
+    end
+    return out
+end
+
+# Converts a hexadecimal string into a list of byte integers.
+function bytes_from_hex(hex_str)
+    let n = len(hex_str)
+    if n % 2 != 0
+        throw "Invalid hex string length: must be even"
+    end
+    let res = []
+    let i = 0
+    while i < n
+        let hi_ch = hex_str[i]
+        let lo_ch = hex_str[i + 1]
+        let hi = _hex_char_val(hi_ch)
+        let lo = _hex_char_val(lo_ch)
+        if hi < 0 or lo < 0
+            throw "Invalid hex character in: " + hex_str
+        end
+        res.push(bit_shl(hi, 4) + lo)
+        i += 2
+    end
+    return res
+end
+
+function _hex_char_val(ch)
+    if ch == "0" return 0 end
+    if ch == "1" return 1 end
+    if ch == "2" return 2 end
+    if ch == "3" return 3 end
+    if ch == "4" return 4 end
+    if ch == "5" return 5 end
+    if ch == "6" return 6 end
+    if ch == "7" return 7 end
+    if ch == "8" return 8 end
+    if ch == "9" return 9 end
+    if ch == "a" or ch == "A" return 10 end
+    if ch == "b" or ch == "B" return 11 end
+    if ch == "c" or ch == "C" return 12 end
+    if ch == "d" or ch == "D" return 13 end
+    if ch == "e" or ch == "E" return 14 end
+    if ch == "f" or ch == "F" return 15 end
+    return -1
 end

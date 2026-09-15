@@ -1,6 +1,43 @@
 # Native C FFI declarations for compress
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
-extern "C"
-    function alya_compress_add(a: i32, b: i32) -> i32
+extern "C" from "compress"
+    # Bounds calculation
+    function alya_deflate_bound(src_len: i64) -> i64
+    function alya_zlib_bound(src_len: i64) -> i64
+    function alya_gzip_bound(src_len: i64) -> i64
+    function alya_lz4_bound(src_len: i64) -> i64
+    function alya_snappy_bound(src_len: i64) -> i64
+
+    # Size queries
+    function alya_snappy_uncompressed_len(src: ptr, src_len: i64, out_len: ptr) -> i32
+    function alya_gzip_uncompressed_len(src: ptr, src_len: i64, out_len: ptr) -> i32
+
+    # Compression
+    function alya_deflate_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
+    function alya_zlib_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
+    function alya_gzip_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr, level: i32) -> i32
+    function alya_lz4_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_snappy_compress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+
+    # Fixed-buffer decompression
+    function alya_deflate_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_zlib_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_gzip_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_lz4_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+    function alya_snappy_decompress(src: ptr, src_len: i64, dst: ptr, dst_len: ptr) -> i32
+
+    # Auto-allocating dynamic decompression
+    function alya_deflate_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_zlib_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_gzip_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_lz4_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+    function alya_snappy_decompress_auto(src: ptr, src_len: i64, out_buf: ptr, out_len: ptr) -> i32
+
+    # Buffer deallocator
+    function alya_free_buffer(p: ptr) -> i32
+
+    # Checksums
+    function alya_crc32(crc: i64, buf: ptr, len: i64) -> i64
+    function alya_adler32(adler: i64, buf: ptr, len: i64) -> i64
 end
