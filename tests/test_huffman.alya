@@ -35,4 +35,4 @@ let c5 = huffman_compress("")
 let d5 = huffman_decompress(c5)
 assert_str_eq(d5, "", "huffman empty input")
 
-    say "All Huffman tests passed successfully!"
+say "All Huffman tests passed successfully!"
