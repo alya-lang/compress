@@ -10,12 +10,12 @@ let BZIP2_LEVEL_FASTEST = 1
 let BZIP2_LEVEL_MAX = 9
 
 # Compresses a byte list using bzip2 (default level 9).
-function bzip2_compress(bytes)
+pub function bzip2_compress(bytes)
     return bzip2_compress_level(bytes, BZIP2_LEVEL_DEFAULT)
 end
 
 # Compresses a byte list using bzip2 with specified level (1..9).
-function bzip2_compress_level(bytes, level)
+pub function bzip2_compress_level(bytes, level)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -41,12 +41,12 @@ function bzip2_compress_level(bytes, level)
 end
 
 # Compresses a string using bzip2 (default level 9).
-function bzip2_compress_str(text)
+pub function bzip2_compress_str(text)
     return bzip2_compress_str_level(text, BZIP2_LEVEL_DEFAULT)
 end
 
 # Compresses a string using bzip2 with specified level (1..9).
-function bzip2_compress_str_level(text, level)
+pub function bzip2_compress_str_level(text, level)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -71,7 +71,7 @@ function bzip2_compress_str_level(text, level)
 end
 
 # Decompresses bzip2 data into a byte array.
-function bzip2_decompress(bytes)
+pub function bzip2_decompress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -100,7 +100,7 @@ function bzip2_decompress(bytes)
 end
 
 # Decompresses bzip2 data directly into a UTF-8 string.
-function bzip2_decompress_str(bytes)
+pub function bzip2_decompress_str(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

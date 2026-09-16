@@ -6,12 +6,12 @@ import "ffi.alya"
 import "types.alya"
 
 # Compresses a byte list using GZIP (level 6).
-function gzip_compress(bytes)
+pub function gzip_compress(bytes)
     return gzip_compress_level(bytes, LEVEL_DEFAULT)
 end
 
 # Compresses a byte list using GZIP with specified level (1..9).
-function gzip_compress_level(bytes, level)
+pub function gzip_compress_level(bytes, level)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -37,12 +37,12 @@ function gzip_compress_level(bytes, level)
 end
 
 # Compresses a string using GZIP (level 6).
-function gzip_compress_str(text)
+pub function gzip_compress_str(text)
     return gzip_compress_str_level(text, LEVEL_DEFAULT)
 end
 
 # Compresses a string using GZIP with specified level (1..9).
-function gzip_compress_str_level(text, level)
+pub function gzip_compress_str_level(text, level)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -67,7 +67,7 @@ function gzip_compress_str_level(text, level)
 end
 
 # Decompresses GZIP data into a byte array.
-function gzip_decompress(bytes)
+pub function gzip_decompress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -96,7 +96,7 @@ function gzip_decompress(bytes)
 end
 
 # Decompresses GZIP data directly into a UTF-8 string.
-function gzip_decompress_str(bytes)
+pub function gzip_decompress_str(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

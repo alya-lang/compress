@@ -6,7 +6,7 @@ import "ffi.alya"
 import "types.alya"
 
 # Resolves format identifier integer from string name or returns integer.
-function resolve_lz_format(name)
+pub function resolve_lz_format(name)
     if name == "lz77"
         return 0
     end
@@ -34,12 +34,12 @@ function resolve_lz_format(name)
     return name
 end
 
-function format_from_str(name)
+pub function format_from_str(name)
     return resolve_lz_format(name)
 end
 
 # Core compressor for byte arrays
-function internal_lz_compress(bytes, format)
+pub function internal_lz_compress(bytes, format)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -68,7 +68,7 @@ function internal_lz_compress(bytes, format)
 end
 
 # Core compressor for string input
-function internal_lz_compress_str(text, format)
+pub function internal_lz_compress_str(text, format)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -96,7 +96,7 @@ function internal_lz_compress_str(text, format)
 end
 
 # Core decompressor returning byte arrays
-function internal_lz_decompress(bytes, format)
+pub function internal_lz_decompress(bytes, format)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -125,7 +125,7 @@ function internal_lz_decompress(bytes, format)
 end
 
 # Core decompressor returning UTF-8 strings
-function internal_lz_decompress_str(bytes, format)
+pub function internal_lz_decompress_str(bytes, format)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -154,137 +154,137 @@ function internal_lz_decompress_str(bytes, format)
 end
 
 # --- Generic APIs ---
-function lz_compress(bytes, format)
+pub function lz_compress(bytes, format)
     return internal_lz_compress(bytes, resolve_lz_format(format))
 end
 
-function lz_compress_str(text, format)
+pub function lz_compress_str(text, format)
     return internal_lz_compress_str(text, resolve_lz_format(format))
 end
 
-function lz_decompress(bytes, format)
+pub function lz_decompress(bytes, format)
     return internal_lz_decompress(bytes, resolve_lz_format(format))
 end
 
-function lz_decompress_str(bytes, format)
+pub function lz_decompress_str(bytes, format)
     return internal_lz_decompress_str(bytes, resolve_lz_format(format))
 end
 
 # --- LZ77 Specific APIs (Format 0) ---
-function lz77(bytes)
+pub function lz77(bytes)
     return internal_lz_compress(bytes, 0)
 end
 
-function lz77_str(text)
+pub function lz77_str(text)
     return internal_lz_compress_str(text, 0)
 end
 
-function unlz77(bytes)
+pub function unlz77(bytes)
     return internal_lz_decompress(bytes, 0)
 end
 
-function unlz77_str(bytes)
+pub function unlz77_str(bytes)
     return internal_lz_decompress_str(bytes, 0)
 end
 
 # --- LZ78 Specific APIs (Format 1) ---
-function lz78(bytes)
+pub function lz78(bytes)
     return internal_lz_compress(bytes, 1)
 end
 
-function lz78_str(text)
+pub function lz78_str(text)
     return internal_lz_compress_str(text, 1)
 end
 
-function unlz78(bytes)
+pub function unlz78(bytes)
     return internal_lz_decompress(bytes, 1)
 end
 
-function unlz78_str(bytes)
+pub function unlz78_str(bytes)
     return internal_lz_decompress_str(bytes, 1)
 end
 
 # --- LZW Specific APIs (Format 2) ---
-function lzw(bytes)
+pub function lzw(bytes)
     return internal_lz_compress(bytes, 2)
 end
 
-function lzw_str(text)
+pub function lzw_str(text)
     return internal_lz_compress_str(text, 2)
 end
 
-function unlzw(bytes)
+pub function unlzw(bytes)
     return internal_lz_decompress(bytes, 2)
 end
 
-function unlzw_str(bytes)
+pub function unlzw_str(bytes)
     return internal_lz_decompress_str(bytes, 2)
 end
 
 # --- LZSS Specific APIs (Format 4) ---
-function lzss(bytes)
+pub function lzss(bytes)
     return internal_lz_compress(bytes, 4)
 end
 
-function lzss_str(text)
+pub function lzss_str(text)
     return internal_lz_compress_str(text, 4)
 end
 
-function unlzss(bytes)
+pub function unlzss(bytes)
     return internal_lz_decompress(bytes, 4)
 end
 
-function unlzss_str(bytes)
+pub function unlzss_str(bytes)
     return internal_lz_decompress_str(bytes, 4)
 end
 
 # --- LZMA Specific APIs (Format 5) ---
-function lzma(bytes)
+pub function lzma(bytes)
     return internal_lz_compress(bytes, 5)
 end
 
-function lzma_str(text)
+pub function lzma_str(text)
     return internal_lz_compress_str(text, 5)
 end
 
-function unlzma(bytes)
+pub function unlzma(bytes)
     return internal_lz_decompress(bytes, 5)
 end
 
-function unlzma_str(bytes)
+pub function unlzma_str(bytes)
     return internal_lz_decompress_str(bytes, 5)
 end
 
 # --- LZMA2 Specific APIs (Format 6) ---
-function lzma2(bytes)
+pub function lzma2(bytes)
     return internal_lz_compress(bytes, 6)
 end
 
-function lzma2_str(text)
+pub function lzma2_str(text)
     return internal_lz_compress_str(text, 6)
 end
 
-function unlzma2(bytes)
+pub function unlzma2(bytes)
     return internal_lz_decompress(bytes, 6)
 end
 
-function unlzma2_str(bytes)
+pub function unlzma2_str(bytes)
     return internal_lz_decompress_str(bytes, 6)
 end
 
 # --- LZJB Specific APIs (Format 7) ---
-function lzjb(bytes)
+pub function lzjb(bytes)
     return internal_lz_compress(bytes, 7)
 end
 
-function lzjb_str(text)
+pub function lzjb_str(text)
     return internal_lz_compress_str(text, 7)
 end
 
-function unlzjb(bytes)
+pub function unlzjb(bytes)
     return internal_lz_decompress(bytes, 7)
 end
 
-function unlzjb_str(bytes)
+pub function unlzjb_str(bytes)
     return internal_lz_decompress_str(bytes, 7)
 end

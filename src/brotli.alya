@@ -10,12 +10,12 @@ let BROTLI_QUALITY_FASTEST = 1
 let BROTLI_QUALITY_MAX = 11
 
 # Compresses a byte list using Brotli (default quality 11).
-function brotli_compress(bytes)
+pub function brotli_compress(bytes)
     return brotli_compress_level(bytes, BROTLI_QUALITY_DEFAULT)
 end
 
 # Compresses a byte list using Brotli with specified quality (0..11).
-function brotli_compress_level(bytes, quality)
+pub function brotli_compress_level(bytes, quality)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -41,12 +41,12 @@ function brotli_compress_level(bytes, quality)
 end
 
 # Compresses a string using Brotli (default quality 11).
-function brotli_compress_str(text)
+pub function brotli_compress_str(text)
     return brotli_compress_str_level(text, BROTLI_QUALITY_DEFAULT)
 end
 
 # Compresses a string using Brotli with specified quality (0..11).
-function brotli_compress_str_level(text, quality)
+pub function brotli_compress_str_level(text, quality)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -71,7 +71,7 @@ function brotli_compress_str_level(text, quality)
 end
 
 # Decompresses Brotli data into a byte array.
-function brotli_decompress(bytes)
+pub function brotli_decompress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -100,7 +100,7 @@ function brotli_decompress(bytes)
 end
 
 # Decompresses Brotli data directly into a UTF-8 string.
-function brotli_decompress_str(bytes)
+pub function brotli_decompress_str(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

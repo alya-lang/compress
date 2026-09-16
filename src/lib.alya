@@ -26,234 +26,261 @@ import "szip.alya"
 import "checksum.alya"
 import "huffman.alya"
 
+# ═══════════════════════════════════════════════════════════════
+# Unified Format Dispatch with Pattern Matching
+# ═══════════════════════════════════════════════════════════════
+
+pub function compress_by_format(data, format = CompressionFormat.Gzip, level = CompressionLevel.Default)
+    when format
+        is CompressionFormat.Deflate, "deflate" then return deflate_level(data, level)
+        is CompressionFormat.Zlib, "zlib" then return zlib_level(data, level)
+        is CompressionFormat.Gzip, "gzip" then return gzip_level(data, level)
+        is CompressionFormat.Lz4, "lz4" then return lz4(data)
+        is CompressionFormat.Snappy, "snappy" then return snappy(data)
+        is CompressionFormat.Brotli, "brotli" then return brotli_quality(data, level)
+        is CompressionFormat.Bzip2, "bzip2" then return bzip2_level(data, level)
+        is CompressionFormat.Zstd, "zstd" then return zstd_level(data, level)
+        else return gzip(data)
+    end
+end
+
+pub function decompress_by_format(data, format = CompressionFormat.Gzip)
+    when format
+        is CompressionFormat.Deflate, "deflate" then return inflate(data)
+        is CompressionFormat.Zlib, "zlib" then return unzlib(data)
+        is CompressionFormat.Gzip, "gzip" then return gunzip(data)
+        is CompressionFormat.Lz4, "lz4" then return unlz4(data)
+        is CompressionFormat.Snappy, "snappy" then return unsnappy(data)
+        is CompressionFormat.Brotli, "brotli" then return unbrotli(data)
+        is CompressionFormat.Bzip2, "bzip2" then return unbzip2(data)
+        is CompressionFormat.Zstd, "zstd" then return unzstd(data)
+        else return gunzip(data)
+    end
+end
+
 # --- 1. BROTLI (RFC 7932) ---
-function brotli(bytes)
+pub function brotli(bytes)
     return brotli_compress(bytes)
 end
 
-function brotli_str(text)
+pub function brotli_str(text)
     return brotli_compress_str(text)
 end
 
-function brotli_quality(bytes, quality)
+pub function brotli_quality(bytes, quality)
     return brotli_compress_level(bytes, quality)
 end
 
-function brotli_str_quality(text, quality)
+pub function brotli_str_quality(text, quality)
     return brotli_compress_str_level(text, quality)
 end
 
-function unbrotli(bytes)
+pub function unbrotli(bytes)
     return brotli_decompress(bytes)
 end
 
-function unbrotli_str(bytes)
+pub function unbrotli_str(bytes)
     return brotli_decompress_str(bytes)
 end
 
 # --- 2. BZIP2 (Burrows-Wheeler) ---
-function bzip2(bytes)
+pub function bzip2(bytes)
     return bzip2_compress(bytes)
 end
 
-function bzip2_str(text)
+pub function bzip2_str(text)
     return bzip2_compress_str(text)
 end
 
-function bzip2_block(bytes, block_100k)
+pub function bzip2_block(bytes, block_100k)
     return bzip2_compress_level(bytes, block_100k)
 end
 
-function bzip2_str_block(text, block_100k)
+pub function bzip2_str_block(text, block_100k)
     return bzip2_compress_str_level(text, block_100k)
 end
 
-function bzip2_level(bytes, level)
+pub function bzip2_level(bytes, level)
     return bzip2_compress_level(bytes, level)
 end
 
-function bzip2_str_level(text, level)
+pub function bzip2_str_level(text, level)
     return bzip2_compress_str_level(text, level)
 end
 
-function unbzip2(bytes)
+pub function unbzip2(bytes)
     return bzip2_decompress(bytes)
 end
 
-function unbzip2_str(bytes)
+pub function unbzip2_str(bytes)
     return bzip2_decompress_str(bytes)
 end
 
 # --- 3. DEFLATE (RFC 1951) ---
-function deflate(bytes)
+pub function deflate(bytes)
     return deflate_compress(bytes)
 end
 
-function deflate_str(text)
+pub function deflate_str(text)
     return deflate_compress_str(text)
 end
 
-function deflate_level(bytes, level)
+pub function deflate_level(bytes, level)
     return deflate_compress_level(bytes, level)
 end
 
-function deflate_str_level(text, level)
+pub function deflate_str_level(text, level)
     return deflate_compress_str_level(text, level)
 end
 
-function inflate(bytes)
+pub function inflate(bytes)
     return deflate_decompress(bytes)
 end
 
-function inflate_str(bytes)
+pub function inflate_str(bytes)
     return deflate_decompress_str(bytes)
 end
 
 # --- 4. GZIP (RFC 1952) ---
-function gzip(bytes)
+pub function gzip(bytes)
     return gzip_compress(bytes)
 end
 
-function gzip_str(text)
+pub function gzip_str(text)
     return gzip_compress_str(text)
 end
 
-function gzip_level(bytes, level)
+pub function gzip_level(bytes, level)
     return gzip_compress_level(bytes, level)
 end
 
-function gzip_str_level(text, level)
+pub function gzip_str_level(text, level)
     return gzip_compress_str_level(text, level)
 end
 
-function gunzip(bytes)
+pub function gunzip(bytes)
     return gzip_decompress(bytes)
 end
 
-function gunzip_str(bytes)
+pub function gunzip_str(bytes)
     return gzip_decompress_str(bytes)
 end
 
 # --- 5. LZ FAMILY (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW) ---
 
-# Native C LZ4 block compressor (ultra-fast 1M+ ops/s)
-
-function lz4(bytes)
+pub function lz4(bytes)
     return lz4_compress(bytes)
 end
 
-function lz4_str(text)
+pub function lz4_str(text)
     return lz4_compress_str(text)
 end
 
-function unlz4(bytes)
+pub function unlz4(bytes)
     return lz4_decompress(bytes)
 end
 
-function unlz4_str(bytes)
+pub function unlz4_str(bytes)
     return lz4_decompress_str(bytes)
 end
 
-# Note: LZ family functions (lz_compress, lz_decompress, lz77, lz78, lzw, lzss, lzma, lzma2, lzjb)
-# are automatically exported via `import "lz.alya"`.
-
 # --- 6. SNAPPY ---
-function snappy(bytes)
+pub function snappy(bytes)
     return snappy_compress(bytes)
 end
 
-function snappy_str(text)
+pub function snappy_str(text)
     return snappy_compress_str(text)
 end
 
-function unsnappy(bytes)
+pub function unsnappy(bytes)
     return snappy_decompress(bytes)
 end
 
-function unsnappy_str(bytes)
+pub function unsnappy_str(bytes)
     return snappy_decompress_str(bytes)
 end
 
 # --- 7. SZIP / ZIP ARCHIVE ---
-function szip(bytes)
+pub function szip(bytes)
     return szip_compress(bytes)
 end
 
-function szip_str(text)
+pub function szip_str(text)
     return szip_compress_str(text)
 end
 
-function unszip(bytes)
+pub function unszip(bytes)
     return szip_decompress(bytes)
 end
 
-function unszip_str(bytes)
+pub function unszip_str(bytes)
     return szip_decompress_str(bytes)
 end
 
 # --- 8. ZLIB (RFC 1950) ---
-function zlib(bytes)
+pub function zlib(bytes)
     return zlib_compress(bytes)
 end
 
-function zlib_str(text)
+pub function zlib_str(text)
     return zlib_compress_str(text)
 end
 
-function zlib_level(bytes, level)
+pub function zlib_level(bytes, level)
     return zlib_compress_level(bytes, level)
 end
 
-function zlib_str_level(text, level)
+pub function zlib_str_level(text, level)
     return zlib_compress_str_level(text, level)
 end
 
-function unzlib(bytes)
+pub function unzlib(bytes)
     return zlib_decompress(bytes)
 end
 
-function unzlib_str(bytes)
+pub function unzlib_str(bytes)
     return zlib_decompress_str(bytes)
 end
 
 # --- 9. ZSTD (Meta Zstandard) ---
-function zstd(bytes)
+pub function zstd(bytes)
     return zstd_compress(bytes)
 end
 
-function zstd_str(text)
+pub function zstd_str(text)
     return zstd_compress_str(text)
 end
 
-function zstd_level(bytes, level)
+pub function zstd_level(bytes, level)
     return zstd_compress_level(bytes, level)
 end
 
-function zstd_str_level(text, level)
+pub function zstd_str_level(text, level)
     return zstd_compress_str_level(text, level)
 end
 
-function unzstd(bytes)
+pub function unzstd(bytes)
     return zstd_decompress(bytes)
 end
 
-function unzstd_str(bytes)
+pub function unzstd_str(bytes)
     return zstd_decompress_str(bytes)
 end
 
 # --- 10. HUFFMAN (Optimal Prefix Codec) ---
-function huffman(text)
+pub function huffman(text)
     return huffman_compress(text)
 end
 
-function huffman_str(text)
+pub function huffman_str(text)
     return huffman_compress(text)
 end
 
-function unhuffman(bytes)
+pub function unhuffman(bytes)
     return huffman_decompress(bytes)
 end
 
-function unhuffman_str(bytes)
+pub function unhuffman_str(bytes)
     return huffman_decompress(bytes)
 end

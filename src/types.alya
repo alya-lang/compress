@@ -4,30 +4,58 @@
 import "std/mem"
 
 # --- Compression Levels ---
-let LEVEL_NO_COMPRESSION = 0
-let LEVEL_FASTEST = 1
-let LEVEL_DEFAULT = 6
-let LEVEL_BEST = 9
+pub enum CompressionLevel
+    NoCompression = 0,
+    Fastest = 1,
+    Default = 6,
+    Best = 9
+end
+
+pub let LEVEL_NO_COMPRESSION = 0
+pub let LEVEL_FASTEST = 1
+pub let LEVEL_DEFAULT = 6
+pub let LEVEL_BEST = 9
 
 # --- Format Identifiers ---
-let FORMAT_DEFLATE = "deflate"
-let FORMAT_ZLIB = "zlib"
-let FORMAT_GZIP = "gzip"
-let FORMAT_LZ4 = "lz4"
-let FORMAT_SNAPPY = "snappy"
+pub enum CompressionFormat
+    Deflate = 1,
+    Zlib = 2,
+    Gzip = 3,
+    Lz4 = 4,
+    Snappy = 5,
+    Brotli = 6,
+    Bzip2 = 7,
+    Zstd = 8,
+    Huffman = 9,
+    Szip = 10
+end
+
+pub let FORMAT_DEFLATE = "deflate"
+pub let FORMAT_ZLIB = "zlib"
+pub let FORMAT_GZIP = "gzip"
+pub let FORMAT_LZ4 = "lz4"
+pub let FORMAT_SNAPPY = "snappy"
+pub let FORMAT_BROTLI = "brotli"
+pub let FORMAT_BZIP2 = "bzip2"
+pub let FORMAT_ZSTD = "zstd"
 
 # --- Configuration Structs ---
-struct CompressOptions
+pub struct CompressOptions
     level
 end
 
-function default_compress_options()
+pub function CompressOptions.with_level(self, lvl)
+    self.level = lvl
+    return self
+end
+
+pub function default_compress_options()
     return CompressOptions(LEVEL_DEFAULT)
 end
 
 # --- Data Preparation Helpers ---
 
-function prepare_bytes_input(bytes)
+pub function prepare_bytes_input(bytes)
     let n = len(bytes)
     let p = alloc(n + 1)
     let i = 0
@@ -39,21 +67,21 @@ function prepare_bytes_input(bytes)
     return [p, n, 1]
 end
 
-function prepare_string_input(text)
+pub function prepare_string_input(text)
     let slen = len(text)
     let p = str_to_ptr(text)
     return [p, slen, 0]
 end
 
 # Frees temporary input buffer if it was allocated dynamically.
-function free_prepared_input(prep)
+pub function free_prepared_input(prep)
     if prep[2] == 1
         free(prep[0])
     end
 end
 
 # Converts a contiguous C byte buffer at 'ptr' of size 'len' into an Alya list of bytes.
-function ptr_to_byte_list(ptr, len)
+pub function ptr_to_byte_list(ptr, len)
     let res = []
     let i = 0
     while i < len
@@ -64,7 +92,7 @@ function ptr_to_byte_list(ptr, len)
 end
 
 # Converts a contiguous C byte buffer at 'ptr' of size 'len' into an Alya string.
-function ptr_to_string(ptr, len)
+pub function ptr_to_string(ptr, len)
     if len == 0
         return ""
     end
@@ -73,7 +101,7 @@ function ptr_to_string(ptr, len)
 end
 
 # Converts an Alya string into a list of byte integers [0..255].
-function bytes_from_string(s)
+pub function bytes_from_string(s)
     let p = str_to_ptr(s)
     let slen = len(s)
     let res = []
@@ -86,7 +114,7 @@ function bytes_from_string(s)
 end
 
 # Converts an Alya list of byte integers [0..255] into a UTF-8 string.
-function bytes_to_string(bytes)
+pub function bytes_to_string(bytes)
     let n = len(bytes)
     if n == 0
         return ""
@@ -104,23 +132,19 @@ function bytes_to_string(bytes)
 end
 
 # Converts a list of bytes into a lowercase hexadecimal string.
-function bytes_to_hex(bytes)
+pub function bytes_to_hex(bytes)
     let hex_chars = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
     let out = ""
-    let i = 0
-    let n = len(bytes)
-    while i < n
-        let b = bytes[i]
+    for b in bytes
         let hi = bit_shr(b, 4)
         let lo = bit_and(b, 15)
-        out = out + hex_chars[hi] + hex_chars[lo]
-        i += 1
+        out += hex_chars[hi] + hex_chars[lo]
     end
     return out
 end
 
 # Converts a hexadecimal string into a list of byte integers.
-function bytes_from_hex(hex_str)
+pub function bytes_from_hex(hex_str)
     let n = len(hex_str)
     if n % 2 != 0
         throw "Invalid hex string length: must be even"
@@ -141,22 +165,24 @@ function bytes_from_hex(hex_str)
     return res
 end
 
-function _hex_char_val(ch)
-    if ch == "0" return 0 end
-    if ch == "1" return 1 end
-    if ch == "2" return 2 end
-    if ch == "3" return 3 end
-    if ch == "4" return 4 end
-    if ch == "5" return 5 end
-    if ch == "6" return 6 end
-    if ch == "7" return 7 end
-    if ch == "8" return 8 end
-    if ch == "9" return 9 end
-    if ch == "a" or ch == "A" return 10 end
-    if ch == "b" or ch == "B" return 11 end
-    if ch == "c" or ch == "C" return 12 end
-    if ch == "d" or ch == "D" return 13 end
-    if ch == "e" or ch == "E" return 14 end
-    if ch == "f" or ch == "F" return 15 end
-    return -1
+pub function _hex_char_val(ch)
+    when ch
+        is "0" then return 0
+        is "1" then return 1
+        is "2" then return 2
+        is "3" then return 3
+        is "4" then return 4
+        is "5" then return 5
+        is "6" then return 6
+        is "7" then return 7
+        is "8" then return 8
+        is "9" then return 9
+        is "a", "A" then return 10
+        is "b", "B" then return 11
+        is "c", "C" then return 12
+        is "d", "D" then return 13
+        is "e", "E" then return 14
+        is "f", "F" then return 15
+        else return -1
+    end
 end

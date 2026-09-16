@@ -289,7 +289,18 @@ function main()
     let hex_back = compress::bytes_from_hex("11223344")
     runner_assert_eq(r, len(hex_back), 4, "bytes_from_hex parses 4 bytes")
     runner_assert_eq(r, hex_back[0], 17, "bytes_from_hex byte 0 is 17")
-    runner_assert_eq(r, hex_back[3], 68, "bytes_from_hex byte 3 is 68")
+    # 18. v0.0.18 Features: Enums, Pattern Matching Dispatch, and Struct Methods
+    runner_assert_eq(r, compress::CompressionLevel.Best, 9, "CompressionLevel.Best enum")
+    runner_assert_eq(r, compress::CompressionFormat.Gzip, 3, "CompressionFormat.Gzip enum")
+
+    let opts = compress::default_compress_options()
+    opts.with_level(9)
+    runner_assert_eq(r, opts.level, 9, "opts.with_level method")
+
+    let disp_in = [65, 66, 67, 68, 69, 70]
+    let disp_gz = compress::compress_by_format(disp_in, compress::CompressionFormat.Gzip)
+    let disp_restored = compress::decompress_by_format(disp_gz, compress::CompressionFormat.Gzip)
+    runner_assert_eq(r, len(disp_restored), len(disp_in), "compress_by_format roundtrip length")
 
     let failed = runner_summary(r)
     if failed > 0

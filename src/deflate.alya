@@ -6,12 +6,12 @@ import "ffi.alya"
 import "types.alya"
 
 # Compresses a byte list using raw DEFLATE (level 6).
-function deflate_compress(bytes)
+pub function deflate_compress(bytes)
     return deflate_compress_level(bytes, LEVEL_DEFAULT)
 end
 
 # Compresses a byte list using raw DEFLATE with specified level (1..9).
-function deflate_compress_level(bytes, level)
+pub function deflate_compress_level(bytes, level)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -37,12 +37,12 @@ function deflate_compress_level(bytes, level)
 end
 
 # Compresses a string using raw DEFLATE (level 6).
-function deflate_compress_str(text)
+pub function deflate_compress_str(text)
     return deflate_compress_str_level(text, LEVEL_DEFAULT)
 end
 
 # Compresses a string using raw DEFLATE with specified level (1..9).
-function deflate_compress_str_level(text, level)
+pub function deflate_compress_str_level(text, level)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -67,7 +67,7 @@ function deflate_compress_str_level(text, level)
 end
 
 # Decompresses raw DEFLATE payload into a byte array.
-function deflate_decompress(bytes)
+pub function deflate_decompress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -96,7 +96,7 @@ function deflate_decompress(bytes)
 end
 
 # Decompresses raw DEFLATE payload directly into a UTF-8 string.
-function deflate_decompress_str(bytes)
+pub function deflate_decompress_str(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

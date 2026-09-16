@@ -6,7 +6,7 @@ import "ffi.alya"
 import "types.alya"
 
 # Compresses a byte list using Google Snappy.
-function snappy_compress(bytes)
+pub function snappy_compress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -32,7 +32,7 @@ function snappy_compress(bytes)
 end
 
 # Compresses a string using Google Snappy.
-function snappy_compress_str(text)
+pub function snappy_compress_str(text)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -57,7 +57,7 @@ function snappy_compress_str(text)
 end
 
 # Decompresses Snappy data into a byte array.
-function snappy_decompress(bytes)
+pub function snappy_decompress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -86,7 +86,7 @@ function snappy_decompress(bytes)
 end
 
 # Decompresses Snappy data directly into a UTF-8 string.
-function snappy_decompress_str(bytes)
+pub function snappy_decompress_str(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

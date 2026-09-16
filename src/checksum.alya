@@ -5,12 +5,12 @@ import "ffi.alya"
 import "types.alya"
 
 # Computes CRC-32 checksum of a byte array.
-function crc32(bytes)
+pub function crc32(bytes)
     return crc32_update(0, bytes)
 end
 
 # Computes or continues CRC-32 checksum of a byte array with an initial seed.
-function crc32_update(initial_crc, bytes)
+pub function crc32_update(initial_crc, bytes)
     let prep = prepare_bytes_input(bytes)
     let val = alya_crc32(initial_crc, prep[0], prep[1])
     free_prepared_input(prep)
@@ -18,24 +18,24 @@ function crc32_update(initial_crc, bytes)
 end
 
 # Computes CRC-32 checksum of a string.
-function crc32_str(text)
+pub function crc32_str(text)
     return crc32_str_update(0, text)
 end
 
 # Computes or continues CRC-32 checksum of a string with an initial seed.
-function crc32_str_update(initial_crc, text)
+pub function crc32_str_update(initial_crc, text)
     let prep = prepare_string_input(text)
     let val = alya_crc32(initial_crc, prep[0], prep[1])
     return val
 end
 
 # Computes Adler-32 checksum of a byte array.
-function adler32(bytes)
+pub function adler32(bytes)
     return adler32_update(1, bytes)
 end
 
 # Computes or continues Adler-32 checksum of a byte array with an initial seed (default 1).
-function adler32_update(initial_adler, bytes)
+pub function adler32_update(initial_adler, bytes)
     let prep = prepare_bytes_input(bytes)
     let val = alya_adler32(initial_adler, prep[0], prep[1])
     free_prepared_input(prep)
@@ -43,12 +43,12 @@ function adler32_update(initial_adler, bytes)
 end
 
 # Computes Adler-32 checksum of a string.
-function adler32_str(text)
+pub function adler32_str(text)
     return adler32_str_update(1, text)
 end
 
 # Computes or continues Adler-32 checksum of a string with an initial seed (default 1).
-function adler32_str_update(initial_adler, text)
+pub function adler32_str_update(initial_adler, text)
     let prep = prepare_string_input(text)
     let val = alya_adler32(initial_adler, prep[0], prep[1])
     return val

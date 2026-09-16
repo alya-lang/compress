@@ -1,7 +1,7 @@
 # Huffman Coding & Canonical Compression Algorithm
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
-function huffman_compress(text)
+pub function huffman_compress(text)
     let tlen = len(text)
     if tlen == 0
         return []
@@ -202,7 +202,7 @@ function huffman_compress(text)
     return out
 end
 
-function huffman_decompress(bytes)
+pub function huffman_decompress(bytes)
     let blen = len(bytes)
     if blen == 0
         return ""

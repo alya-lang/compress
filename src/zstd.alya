@@ -10,12 +10,12 @@ let ZSTD_LEVEL_FASTEST = 1
 let ZSTD_LEVEL_MAX = 22
 
 # Compresses a byte list using Zstandard (default level 3).
-function zstd_compress(bytes)
+pub function zstd_compress(bytes)
     return zstd_compress_level(bytes, ZSTD_LEVEL_DEFAULT)
 end
 
 # Compresses a byte list using Zstandard with specified level (1..22).
-function zstd_compress_level(bytes, level)
+pub function zstd_compress_level(bytes, level)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -41,12 +41,12 @@ function zstd_compress_level(bytes, level)
 end
 
 # Compresses a string using Zstandard (default level 3).
-function zstd_compress_str(text)
+pub function zstd_compress_str(text)
     return zstd_compress_str_level(text, ZSTD_LEVEL_DEFAULT)
 end
 
 # Compresses a string using Zstandard with specified level (1..22).
-function zstd_compress_str_level(text, level)
+pub function zstd_compress_str_level(text, level)
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -71,7 +71,7 @@ function zstd_compress_str_level(text, level)
 end
 
 # Decompresses Zstandard data into a byte array.
-function zstd_decompress(bytes)
+pub function zstd_decompress(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -100,7 +100,7 @@ function zstd_decompress(bytes)
 end
 
 # Decompresses Zstandard data directly into a UTF-8 string.
-function zstd_decompress_str(bytes)
+pub function zstd_decompress_str(bytes)
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
