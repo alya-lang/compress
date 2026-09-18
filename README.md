@@ -31,28 +31,26 @@ Comprehensive, high-performance compression and decompression toolkit for the **
 - **`compress.zstd`** (Meta / Facebook Zstandard, RFC 8878): Modern high-speed, high-density real-time engine.
 - **Data Integrity**: Hardware-accelerated **CRC-32** and **Adler-32** checksums.
 
----
+### Algorithm Overview
 
-## 📊 Algorithm Comparison Matrix
-
-| Module / Variation | Algorithm Origin | Best Used For | Ratio | Throughput (Decompress) |
-|:---|:---|:---|:---:|---:|
-| `compress.brotli` | Google / RFC 7932 | Web assets, maximum compression | Ultra High | ~384,000 ops/sec |
-| `compress.bzip2` | Julian Seward / BWT | Archive density, log files | Very High | ~47,000 ops/sec |
-| `compress.zstd` | Meta / RFC 8878 | Modern databases, file systems | High | ~287,000 ops/sec |
-| `compress.gzip` | RFC 1952 | HTTP transfers, `.tar.gz` | High | ~222,000 ops/sec |
-| `compress.zlib` | RFC 1950 | Network protocols, PNG | High | ~243,000 ops/sec |
-| `compress.deflate` | RFC 1951 | Low-level streaming | High | ~256,000 ops/sec |
-| `compress.szip` | miniz / PKWARE | `.zip` archive files | High | ~112,000 ops/sec |
-| `compress.lz` (`lz4`) | Yann Collet | Real-time RPC, cache | Balanced | **~1,086,000 ops/sec** |
-| `compress.lz` (`lzjb`) | Jeff Bonwick | Fast storage block | Balanced | **~1,136,000 ops/sec** |
-| `compress.lz` (`lz77`) | Lempel & Ziv | Sliding window stream | Balanced | **~1,086,000 ops/sec** |
-| `compress.lz` (`lzss`) | Storer & Szymanski | Low memory footprint | Balanced | **~1,086,000 ops/sec** |
-| `compress.lz` (`lzma`) | Igor Pavlov | High compression profile | High | **~1,086,000 ops/sec** |
-| `compress.lz` (`lzma2`) | Igor Pavlov | Chunked LZMA profile | High | **~1,086,000 ops/sec** |
-| `compress.lz` (`lzw`) | Terry Welch | Dynamic dictionary | Balanced | **~625,000 ops/sec** |
-| `compress.lz` (`lz78`) | Lempel & Ziv | Dictionary prefix codes | Variable | ~250,000 ops/sec |
-| `compress.snappy` | Google | Distributed storage, big data | Balanced | **~1,086,000 ops/sec** |
+| Module / Variation | Algorithm Origin | Best Used For | Ratio Profile |
+|:---|:---|:---|:---:|
+| `compress.brotli` | Google / RFC 7932 | Web assets, maximum compression | Ultra High |
+| `compress.bzip2` | Julian Seward / BWT | Archive density, log files | Very High |
+| `compress.zstd` | Meta / RFC 8878 | Modern databases, file systems | High |
+| `compress.gzip` | RFC 1952 | HTTP transfers, `.tar.gz` | High |
+| `compress.zlib` | RFC 1950 | Network protocols, PNG | High |
+| `compress.deflate` | RFC 1951 | Low-level streaming | High |
+| `compress.szip` | miniz / PKWARE | `.zip` archive files | High |
+| `compress.lz` (`lz4`) | Yann Collet | Real-time RPC, cache | Balanced |
+| `compress.lz` (`lzjb`) | Jeff Bonwick | Fast storage block | Balanced |
+| `compress.lz` (`lz77`) | Lempel & Ziv | Sliding window stream | Balanced |
+| `compress.lz` (`lzss`) | Storer & Szymanski | Low memory footprint | Balanced |
+| `compress.lz` (`lzma`) | Igor Pavlov | High compression profile | High |
+| `compress.lz` (`lzma2`) | Igor Pavlov | Chunked LZMA profile | High |
+| `compress.lz` (`lzw`) | Terry Welch | Dynamic dictionary | Balanced |
+| `compress.lz` (`lz78`) | Lempel & Ziv | Dictionary prefix codes | Variable |
+| `compress.snappy` | Google | Distributed storage, big data | Balanced |
 
 ---
 
@@ -246,49 +244,21 @@ main()
 
 ---
 
-## ⚡ Performance Benchmarks
+## 🧪 Running Tests, Benchmarks & Documentation
 
-Measured on Windows 11 with AMD Ryzen / MinGW GCC via `benches/bench_basic.alya`:
-
-| Method | Mean (ns/op) | Throughput | Description |
-|:---|---:|---:|:---|
-| `adler32_str()` | **220 ns** | **4,545,000 ops/s** | Adler-32 hardware checksum |
-| `crc32_str()` | **540 ns** | **1,851,000 ops/s** | CRC-32 hardware checksum |
-| `unlzjb_str()` | **880 ns** | **1,136,000 ops/s** | LZJB decompression |
-| `unlz77_str()` | **920 ns** | **1,086,000 ops/s** | LZ77 decompression |
-| `unlz4_str()` | **920 ns** | **1,086,000 ops/s** | LZ4 real-time block decompression |
-| `unsnappy_str()` | **920 ns** | **1,086,000 ops/s** | Snappy block decompression |
-| `unlzw_str()` | ~1.6 µs | **625,000 ops/s** | LZW dictionary decompression |
-| `lz4_str()` | ~2.0 µs | **480,000 ops/s** | LZ4 block compression |
-| `snappy_str()` | ~2.1 µs | **471,000 ops/s** | Snappy block compression |
-| `unbrotli_str()` | ~2.6 µs | **384,000 ops/s** | Brotli decompression |
-| `unzstd_str()` | ~3.4 µs | **287,000 ops/s** | Zstandard decompression |
-| `inflate_str()` | ~3.9 µs | **256,000 ops/s** | Raw DEFLATE decompression |
-| `unzlib_str()` | ~4.1 µs | **243,000 ops/s** | ZLIB RFC 1950 decompression |
-| `gunzip_str()` | ~4.5 µs | **222,000 ops/s** | GZIP RFC 1952 decompression |
-| `lzjb_str()` | ~5.8 µs | **172,000 ops/s** | LZJB compression |
-| `lz77_str()` | ~5.9 µs | **169,000 ops/s** | LZ77 compression |
-| `zstd_str()` | ~6.5 µs | **153,000 ops/s** | Zstandard compression |
-| `deflate_str()` | ~7.7 µs | **129,000 ops/s** | Raw DEFLATE compression |
-| `zlib_str()` | ~8.5 µs | **117,000 ops/s** | ZLIB RFC 1950 compression |
-| `szip_str()` | ~8.9 µs | **112,000 ops/s** | SZIP buffer compression |
-| `gzip_str()` | ~12.2 µs | **81,000 ops/s** | GZIP RFC 1952 compression |
-| `unbzip2_str()` | ~21.2 µs | **47,000 ops/s** | Bzip2 BWT decompression |
-| `bzip2_str()` | ~43.5 µs | **22,000 ops/s** | Bzip2 BWT compression |
-| `lzw_str()` | ~140.0 µs | **7,000 ops/s** | LZW dictionary compression |
-| `brotli_str()` | ~397.0 µs | **2,500 ops/s** | Brotli maximum quality compression |
-
----
-
-## 🧪 Running Tests & Benchmarks
-
-Run the complete test suite (104 assertions covering all algorithms & variations):
+Run the automated test suite using `alya test`:
 
 ```bash
-alya run tests/test_basic.alya
+alya test
 ```
 
-Run the 25-method micro-benchmarks:
+Generate static API documentation:
+
+```bash
+alya doc . -o docs --markdown
+```
+
+Run the benchmark suite:
 
 ```bash
 alya run benches/bench_basic.alya
@@ -298,6 +268,12 @@ Run the demonstration:
 
 ```bash
 alya run examples/demo.alya
+```
+
+Check code formatting:
+
+```bash
+alya fmt . --check
 ```
 
 ---

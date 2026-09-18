@@ -14,6 +14,7 @@ keywords = ["alya", "alya-lang", "package", "compress", "compression", "huffman"
 [dependencies]
 
 [build]
+links = "compress"
 c-sources = ["c/miniz.c", "c/lz4.c", "c/snappy.c", "c/zstd.c", "c/bzip2.c", "c/brotli.c", "c/lz.c", "c/compress.c"]
 c-flags = ["-O2"]
 c-include-dirs = ["c"]
