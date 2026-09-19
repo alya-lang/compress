@@ -1,6 +1,6 @@
 [package]
 name = "compress"
-version = "0.6.0"
+version = "0.1.0"
 alya-version = "0.0.18"
 entry = "src/lib.alya"
 description = "Comprehensive compression toolkit for Alya (Brotli, Bzip2, Deflate, Gzip, Huffman, LZ family, Snappy, Szip, Zlib, Zstd)"
@@ -9,7 +9,6 @@ license = "MIT"
 homepage = "https://github.com/alya-lang/alya"
 repository = "https://github.com/alya-lang/compress"
 keywords = ["alya", "alya-lang", "package", "compress", "compression", "huffman", "gzip", "zlib", "deflate", "snappy", "lz", "lz4", "lz77", "lz78", "lzw", "lzss", "lzma", "lzjb", "zstd", "bzip2", "brotli", "szip", "c", "ffi"]
-
 
 [dependencies]
 
