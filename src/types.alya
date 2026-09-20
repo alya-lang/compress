@@ -37,6 +37,13 @@ pub const LEVEL_BEST = 9
 ## - `Zstd`: Meta Zstandard scalable dictionary compression.
 ## - `Huffman`: Pure Alya optimal prefix-tree entropy coding.
 ## - `Szip`: Simple ZIP archive and container format.
+## - `Lz77`: Classic LZ77 sliding-window compression.
+## - `Lz78`: LZ78 dictionary tree compression.
+## - `Lzw`: Lempel-Ziv-Welch compression.
+## - `Lzss`: LZSS sliding-window compression.
+## - `Lzma`: Lempel-Ziv-Markov chain compression.
+## - `Lzma2`: LZMA2 container compression.
+## - `Lzjb`: Lightweight LZJB compression.
 pub enum CompressionFormat
     Deflate = 1,
     Zlib = 2,
@@ -47,7 +54,46 @@ pub enum CompressionFormat
     Bzip2 = 7,
     Zstd = 8,
     Huffman = 9,
-    Szip = 10
+    Szip = 10,
+    Lz77 = 11,
+    Lz78 = 12,
+    Lzw = 13,
+    Lzss = 14,
+    Lzma = 15,
+    Lzma2 = 16,
+    Lzjb = 17
+end
+
+## Enumeration of Lempel-Ziv family compression algorithms.
+##
+## Identifies specific LZ algorithm variants:
+## - `Lz77`: Classic sliding-window dictionary compression (`0`).
+## - `Lz78`: Dictionary-based tree string compression (`1`).
+## - `Lzw`: Lempel-Ziv-Welch dictionary compression (`2`).
+## - `Lz4`: Ultra-fast byte-aligned block compression (`3`).
+## - `Lzss`: Sliding-window variant with flag bits (`4`).
+## - `Lzma`: Lempel-Ziv-Markov chain algorithm (`5`).
+## - `Lzma2`: Multi-threaded container wrapper for LZMA (`6`).
+## - `Lzjb`: Lightweight LZ compression variant (`7`).
+pub enum LzFormat
+    Lz77 = 0,
+    Lz78 = 1,
+    Lzw = 2,
+    Lz4 = 3,
+    Lzss = 4,
+    Lzma = 5,
+    Lzma2 = 6,
+    Lzjb = 7
+end
+
+## Enumeration of supported data integrity checksum algorithms.
+##
+## Identifies checksum calculation algorithms:
+## - `Crc32`: Cyclic Redundancy Check (IEEE 802.3 32-bit polynomial).
+## - `Adler32`: Adler-32 rolling checksum (RFC 1950 standard).
+pub enum ChecksumAlgorithm
+    Crc32 = 1,
+    Adler32 = 2
 end
 
 pub const FORMAT_DEFLATE = "deflate"

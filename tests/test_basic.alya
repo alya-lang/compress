@@ -289,9 +289,12 @@ function main()
     let hex_back = compress::bytes_from_hex("11223344")
     runner_assert_eq(r, len(hex_back), 4, "bytes_from_hex parses 4 bytes")
     runner_assert_eq(r, hex_back[0], 17, "bytes_from_hex byte 0 is 17")
-    # 18. v0.0.18 Features: Enums, Pattern Matching Dispatch, and Struct Methods
+    # 18. Modern Enums, Pattern Matching Dispatch, and Struct Methods
     runner_assert_eq(r, compress::CompressionLevel.Best, 9, "CompressionLevel.Best enum")
     runner_assert_eq(r, compress::CompressionFormat.Gzip, 3, "CompressionFormat.Gzip enum")
+    runner_assert_eq(r, compress::CompressionFormat.Lz77, 11, "CompressionFormat.Lz77 enum")
+    runner_assert_eq(r, compress::LzFormat.Lzw, 2, "LzFormat.Lzw enum")
+    runner_assert_eq(r, compress::ChecksumAlgorithm.Adler32, 2, "ChecksumAlgorithm.Adler32 enum")
 
     let opts = compress::default_compress_options()
     opts.with_level(9)
@@ -301,6 +304,23 @@ function main()
     let disp_gz = compress::compress_by_format(disp_in, compress::CompressionFormat.Gzip)
     let disp_restored = compress::decompress_by_format(disp_gz, compress::CompressionFormat.Gzip)
     runner_assert_eq(r, len(disp_restored), len(disp_in), "compress_by_format roundtrip length")
+
+    let disp_lz77 = compress::compress_by_format(disp_in, compress::CompressionFormat.Lz77)
+    let disp_lz77_restored = compress::decompress_by_format(disp_lz77, compress::CompressionFormat.Lz77)
+    runner_assert_eq(r, len(disp_lz77_restored), len(disp_in), "compress_by_format Lz77 roundtrip length")
+
+    let ck_crc = compress::compute_checksum_str(test_str, compress::ChecksumAlgorithm.Crc32)
+    runner_assert_eq(r, ck_crc, 1095738169, "compute_checksum_str with ChecksumAlgorithm.Crc32")
+
+    let ck_adler = compress::compute_checksum_str(test_str, compress::ChecksumAlgorithm.Adler32)
+    runner_assert_eq(r, ck_adler, 1541148634, "compute_checksum_str with ChecksumAlgorithm.Adler32")
+
+    let ck_crc_bytes = compress::compute_checksum(bin_sample, compress::ChecksumAlgorithm.Crc32)
+    runner_assert_true(r, ck_crc_bytes != 0, "compute_checksum byte array non-zero")
+
+    let lz_custom = compress::lz_compress(disp_in, compress::LzFormat.Lzw)
+    let lz_custom_dec = compress::lz_decompress(lz_custom, compress::LzFormat.Lzw)
+    runner_assert_eq(r, len(lz_custom_dec), len(disp_in), "lz_compress with LzFormat.Lzw roundtrip")
 
     let failed = runner_summary(r)
     if failed > 0

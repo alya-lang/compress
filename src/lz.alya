@@ -7,39 +7,25 @@ import "std/mem"
 import "ffi.alya" as alya
 import "types.alya"
 
-## Resolves format identifier integer from string name or returns integer.
+## Resolves format identifier integer from string name, LzFormat enum, or integer.
 ##
 ## ### Parameters
-## - `name`: Format identifier string or integer ID.
+## - `name`: Format identifier string, `LzFormat` enum, or integer ID.
 ##
 ## ### Returns
 ## Integer ID representing the LZ format.
 pub function resolve_lz_format(name) -> int
-    if name == "lz77"
-        return 0
+    when name
+        is LzFormat.Lz77, "lz77", 0 then return 0
+        is LzFormat.Lz78, "lz78", 1 then return 1
+        is LzFormat.Lzw, "lzw", 2 then return 2
+        is LzFormat.Lz4, "lz4", 3 then return 3
+        is LzFormat.Lzss, "lzss", 4 then return 4
+        is LzFormat.Lzma, "lzma", 5 then return 5
+        is LzFormat.Lzma2, "lzma2", 6 then return 6
+        is LzFormat.Lzjb, "lzjb", 7 then return 7
+        else return name
     end
-    if name == "lz78"
-        return 1
-    end
-    if name == "lzw"
-        return 2
-    end
-    if name == "lz4"
-        return 3
-    end
-    if name == "lzss"
-        return 4
-    end
-    if name == "lzma"
-        return 5
-    end
-    if name == "lzma2"
-        return 6
-    end
-    if name == "lzjb"
-        return 7
-    end
-    return name
 end
 
 ## Alias for `resolve_lz_format`.

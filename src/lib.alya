@@ -55,7 +55,15 @@ pub function compress_by_format(data, format = CompressionFormat.Gzip, level = C
         is CompressionFormat.Brotli, "brotli" then return brotli_quality(data, level)
         is CompressionFormat.Bzip2, "bzip2" then return bzip2_level(data, level)
         is CompressionFormat.Zstd, "zstd" then return zstd_level(data, level)
-        is "lz77", "lz78", "lzw", "lzss", "lzma", "lzma2", "lzjb" then return lz_compress(data, format)
+        is CompressionFormat.Huffman, "huffman" then return huffman(data)
+        is CompressionFormat.Szip, "szip" then return szip(data)
+        is CompressionFormat.Lz77, "lz77" then return lz_compress(data, 0)
+        is CompressionFormat.Lz78, "lz78" then return lz_compress(data, 1)
+        is CompressionFormat.Lzw, "lzw" then return lz_compress(data, 2)
+        is CompressionFormat.Lzss, "lzss" then return lz_compress(data, 4)
+        is CompressionFormat.Lzma, "lzma" then return lz_compress(data, 5)
+        is CompressionFormat.Lzma2, "lzma2" then return lz_compress(data, 6)
+        is CompressionFormat.Lzjb, "lzjb" then return lz_compress(data, 7)
         else return gzip(data)
     end
 end
@@ -78,30 +86,47 @@ pub function decompress_by_format(data, format = CompressionFormat.Gzip) -> arra
         is CompressionFormat.Brotli, "brotli" then return unbrotli(data)
         is CompressionFormat.Bzip2, "bzip2" then return unbzip2(data)
         is CompressionFormat.Zstd, "zstd" then return unzstd(data)
-        is "lz77", "lz78", "lzw", "lzss", "lzma", "lzma2", "lzjb" then return lz_decompress(data, format)
+        is CompressionFormat.Huffman, "huffman" then return bytes_from_string(unhuffman(data))
+        is CompressionFormat.Szip, "szip" then return unszip(data)
+        is CompressionFormat.Lz77, "lz77" then return lz_decompress(data, 0)
+        is CompressionFormat.Lz78, "lz78" then return lz_decompress(data, 1)
+        is CompressionFormat.Lzw, "lzw" then return lz_decompress(data, 2)
+        is CompressionFormat.Lzss, "lzss" then return lz_decompress(data, 4)
+        is CompressionFormat.Lzma, "lzma" then return lz_decompress(data, 5)
+        is CompressionFormat.Lzma2, "lzma2" then return lz_decompress(data, 6)
+        is CompressionFormat.Lzjb, "lzjb" then return lz_decompress(data, 7)
         else return gunzip(data)
     end
 end
 
-## Computes a checksum for byte array or text string using CRC-32 or Adler-32.
+## Computes a checksum for a byte array using CRC-32 or Adler-32.
 ##
 ## ### Parameters
-## - `data`: Byte array or string.
-## - `algorithm`: Checksum algorithm name (`"crc32"` or `"adler32"`).
+## - `bytes`: Byte array integers `[0..255]`.
+## - `algorithm`: Checksum algorithm (`ChecksumAlgorithm` enum or string `"crc32"` / `"adler32"`).
 ##
 ## ### Returns
 ## 32-bit unsigned integer checksum.
-pub function compute_checksum(data, algorithm: str = "crc32") -> int
-    if algorithm == "adler32"
-        if type(data) == "string"
-            return adler32_str(data)
-        end
-        return adler32(data)
+pub function compute_checksum(bytes, algorithm = ChecksumAlgorithm.Crc32) -> int
+    when algorithm
+        is ChecksumAlgorithm.Adler32, "adler32" then return adler32(bytes)
+        else return crc32(bytes)
     end
-    if type(data) == "string"
-        return crc32_str(data)
+end
+
+## Computes a checksum for a text string using CRC-32 or Adler-32.
+##
+## ### Parameters
+## - `text`: Input text string.
+## - `algorithm`: Checksum algorithm (`ChecksumAlgorithm` enum or string `"crc32"` / `"adler32"`).
+##
+## ### Returns
+## 32-bit unsigned integer checksum.
+pub function compute_checksum_str(text: str, algorithm = ChecksumAlgorithm.Crc32) -> int
+    when algorithm
+        is ChecksumAlgorithm.Adler32, "adler32" then return adler32_str(text)
+        else return crc32_str(text)
     end
-    return crc32(data)
 end
 
 # ═══════════════════════════════════════════════════════════════
