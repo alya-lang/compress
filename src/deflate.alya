@@ -1,17 +1,32 @@
-# RFC 1951 Raw DEFLATE compression and decompression
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## DEFLATE Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## RFC 1951 Raw DEFLATE compression and decompression routines.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-# Compresses a byte list using raw DEFLATE (level 6).
-pub function deflate_compress(bytes)
+## Compresses a byte array using raw DEFLATE (default level 6).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Compressed byte array.
+pub function deflate_compress(bytes) -> array
     return deflate_compress_level(bytes, LEVEL_DEFAULT)
 end
 
-# Compresses a byte list using raw DEFLATE with specified level (1..9).
-pub function deflate_compress_level(bytes, level)
+## Compresses a byte array using raw DEFLATE with specified level (1..9).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+## - `level`: Compression level integer (1=fastest, 9=best).
+##
+## ### Returns
+## Compressed byte array.
+pub function deflate_compress_level(bytes, level: int) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -36,13 +51,26 @@ pub function deflate_compress_level(bytes, level)
     return result
 end
 
-# Compresses a string using raw DEFLATE (level 6).
-pub function deflate_compress_str(text)
+## Compresses a string using raw DEFLATE (default level 6).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+##
+## ### Returns
+## Compressed byte array.
+pub function deflate_compress_str(text: string) -> array
     return deflate_compress_str_level(text, LEVEL_DEFAULT)
 end
 
-# Compresses a string using raw DEFLATE with specified level (1..9).
-pub function deflate_compress_str_level(text, level)
+## Compresses a string using raw DEFLATE with specified level (1..9).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+## - `level`: Compression level integer (1..9).
+##
+## ### Returns
+## Compressed byte array.
+pub function deflate_compress_str_level(text: string, level: int) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -66,8 +94,14 @@ pub function deflate_compress_str_level(text, level)
     return result
 end
 
-# Decompresses raw DEFLATE payload into a byte array.
-pub function deflate_decompress(bytes)
+## Decompresses raw DEFLATE payload into a byte array.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function deflate_decompress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -95,8 +129,14 @@ pub function deflate_decompress(bytes)
     return result
 end
 
-# Decompresses raw DEFLATE payload directly into a UTF-8 string.
-pub function deflate_decompress_str(bytes)
+## Decompresses raw DEFLATE payload directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function deflate_decompress_str(bytes) -> string
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

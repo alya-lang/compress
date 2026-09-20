@@ -1,21 +1,36 @@
-# Google Brotli compression and decompression
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Brotli Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## High-density lossless compression algorithm optimized for web payloads and text (RFC 7932).
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-let BROTLI_QUALITY_DEFAULT = 11
-let BROTLI_QUALITY_FASTEST = 1
-let BROTLI_QUALITY_MAX = 11
+pub const BROTLI_QUALITY_DEFAULT = 11
+pub const BROTLI_QUALITY_FASTEST = 1
+pub const BROTLI_QUALITY_MAX = 11
 
-# Compresses a byte list using Brotli (default quality 11).
-pub function brotli_compress(bytes)
+## Compresses a byte array using Brotli (default quality 11).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Compressed byte array.
+pub function brotli_compress(bytes) -> array
     return brotli_compress_level(bytes, BROTLI_QUALITY_DEFAULT)
 end
 
-# Compresses a byte list using Brotli with specified quality (0..11).
-pub function brotli_compress_level(bytes, quality)
+## Compresses a byte array using Brotli with specified quality level (0..11).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+## - `quality`: Compression quality level from 0 (fastest) to 11 (maximum compression).
+##
+## ### Returns
+## Compressed byte array.
+pub function brotli_compress_level(bytes, quality: int) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -40,13 +55,26 @@ pub function brotli_compress_level(bytes, quality)
     return result
 end
 
-# Compresses a string using Brotli (default quality 11).
-pub function brotli_compress_str(text)
+## Compresses a string using Brotli (default quality 11).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+##
+## ### Returns
+## Compressed byte array.
+pub function brotli_compress_str(text) -> array
     return brotli_compress_str_level(text, BROTLI_QUALITY_DEFAULT)
 end
 
-# Compresses a string using Brotli with specified quality (0..11).
-pub function brotli_compress_str_level(text, quality)
+## Compresses a string using Brotli with specified quality (0..11).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+## - `quality`: Quality level (0..11).
+##
+## ### Returns
+## Compressed byte array.
+pub function brotli_compress_str_level(text, quality: int) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -70,8 +98,14 @@ pub function brotli_compress_str_level(text, quality)
     return result
 end
 
-# Decompresses Brotli data into a byte array.
-pub function brotli_decompress(bytes)
+## Decompresses Brotli data into a byte array.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function brotli_decompress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -99,8 +133,14 @@ pub function brotli_decompress(bytes)
     return result
 end
 
-# Decompresses Brotli data directly into a UTF-8 string.
-pub function brotli_decompress_str(bytes)
+## Decompresses Brotli data directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function brotli_decompress_str(bytes) -> string
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

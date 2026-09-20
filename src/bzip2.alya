@@ -1,21 +1,36 @@
-# bzip2 compression and decompression
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Bzip2 Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## High-ratio lossless block-sorting data compression algorithm based on Burrows-Wheeler transform.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-let BZIP2_LEVEL_DEFAULT = 9
-let BZIP2_LEVEL_FASTEST = 1
-let BZIP2_LEVEL_MAX = 9
+pub const BZIP2_LEVEL_DEFAULT = 9
+pub const BZIP2_LEVEL_FASTEST = 1
+pub const BZIP2_LEVEL_MAX = 9
 
-# Compresses a byte list using bzip2 (default level 9).
-pub function bzip2_compress(bytes)
+## Compresses a byte array using bzip2 (default level 9).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Compressed byte array.
+pub function bzip2_compress(bytes) -> array
     return bzip2_compress_level(bytes, BZIP2_LEVEL_DEFAULT)
 end
 
-# Compresses a byte list using bzip2 with specified level (1..9).
-pub function bzip2_compress_level(bytes, level)
+## Compresses a byte array using bzip2 with the specified block size level (1..9).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+## - `level`: Compression level integer between 1 (fastest, 100k blocks) and 9 (best, 900k blocks).
+##
+## ### Returns
+## Compressed byte array.
+pub function bzip2_compress_level(bytes, level: int) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -40,13 +55,26 @@ pub function bzip2_compress_level(bytes, level)
     return result
 end
 
-# Compresses a string using bzip2 (default level 9).
-pub function bzip2_compress_str(text)
+## Compresses a string using bzip2 (default level 9).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+##
+## ### Returns
+## Compressed byte array.
+pub function bzip2_compress_str(text) -> array
     return bzip2_compress_str_level(text, BZIP2_LEVEL_DEFAULT)
 end
 
-# Compresses a string using bzip2 with specified level (1..9).
-pub function bzip2_compress_str_level(text, level)
+## Compresses a string using bzip2 with specified level (1..9).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+## - `level`: Compression level (1..9).
+##
+## ### Returns
+## Compressed byte array.
+pub function bzip2_compress_str_level(text, level: int) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -70,8 +98,14 @@ pub function bzip2_compress_str_level(text, level)
     return result
 end
 
-# Decompresses bzip2 data into a byte array.
-pub function bzip2_decompress(bytes)
+## Decompresses bzip2-compressed byte array into decompressed byte array.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function bzip2_decompress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -99,8 +133,14 @@ pub function bzip2_decompress(bytes)
     return result
 end
 
-# Decompresses bzip2 data directly into a UTF-8 string.
-pub function bzip2_decompress_str(bytes)
+## Decompresses bzip2-compressed byte array directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function bzip2_decompress_str(bytes) -> string
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

@@ -1,17 +1,32 @@
-# RFC 1952 GZIP compression and decompression
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## GZIP Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## RFC 1952 Gzip compression and decompression with CRC-32 integrity validation.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-# Compresses a byte list using GZIP (level 6).
-pub function gzip_compress(bytes)
+## Compresses a byte array using GZIP (default level 6).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Gzip-compressed byte array.
+pub function gzip_compress(bytes) -> array
     return gzip_compress_level(bytes, LEVEL_DEFAULT)
 end
 
-# Compresses a byte list using GZIP with specified level (1..9).
-pub function gzip_compress_level(bytes, level)
+## Compresses a byte array using GZIP with specified level (1..9).
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+## - `level`: Compression level integer (1=fastest, 9=best).
+##
+## ### Returns
+## Gzip-compressed byte array.
+pub function gzip_compress_level(bytes, level: int) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -36,13 +51,26 @@ pub function gzip_compress_level(bytes, level)
     return result
 end
 
-# Compresses a string using GZIP (level 6).
-pub function gzip_compress_str(text)
+## Compresses a string using GZIP (default level 6).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+##
+## ### Returns
+## Gzip-compressed byte array.
+pub function gzip_compress_str(text: string) -> array
     return gzip_compress_str_level(text, LEVEL_DEFAULT)
 end
 
-# Compresses a string using GZIP with specified level (1..9).
-pub function gzip_compress_str_level(text, level)
+## Compresses a string using GZIP with specified level (1..9).
+##
+## ### Parameters
+## - `text`: Target string to compress.
+## - `level`: Compression level integer (1..9).
+##
+## ### Returns
+## Gzip-compressed byte array.
+pub function gzip_compress_str_level(text: string, level: int) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -66,8 +94,14 @@ pub function gzip_compress_str_level(text, level)
     return result
 end
 
-# Decompresses GZIP data into a byte array.
-pub function gzip_decompress(bytes)
+## Decompresses GZIP-compressed byte array into decompressed byte array.
+##
+## ### Parameters
+## - `bytes`: Gzip-compressed byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function gzip_decompress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -95,8 +129,14 @@ pub function gzip_decompress(bytes)
     return result
 end
 
-# Decompresses GZIP data directly into a UTF-8 string.
-pub function gzip_decompress_str(bytes)
+## Decompresses GZIP-compressed byte array directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Gzip-compressed byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function gzip_decompress_str(bytes) -> string
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

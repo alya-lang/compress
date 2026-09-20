@@ -1,12 +1,20 @@
-# LZ4 Fast Block Compression and Decompression
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## LZ4 Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Extremely fast byte-level compression and decompression routines.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-# Compresses a byte list using LZ4.
-pub function lz4_compress(bytes)
+## Compresses a byte array using LZ4.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Compressed byte array.
+pub function lz4_compress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -31,8 +39,14 @@ pub function lz4_compress(bytes)
     return result
 end
 
-# Compresses a string using LZ4.
-pub function lz4_compress_str(text)
+## Compresses a string using LZ4.
+##
+## ### Parameters
+## - `text`: String to compress.
+##
+## ### Returns
+## Compressed byte array.
+pub function lz4_compress_str(text: str) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -56,8 +70,14 @@ pub function lz4_compress_str(text)
     return result
 end
 
-# Decompresses LZ4 data into a byte array.
-pub function lz4_decompress(bytes)
+## Decompresses LZ4 data into a byte array.
+##
+## ### Parameters
+## - `bytes`: Compressed LZ4 byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function lz4_decompress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -85,8 +105,14 @@ pub function lz4_decompress(bytes)
     return result
 end
 
-# Decompresses LZ4 data directly into a UTF-8 string.
-pub function lz4_decompress_str(bytes)
+## Decompresses LZ4 data directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Compressed LZ4 byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function lz4_decompress_str(bytes) -> str
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

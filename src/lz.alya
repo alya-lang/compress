@@ -1,12 +1,20 @@
-# Unified LZ Family Codecs (LZ77, LZ78, LZW, LZ4, LZSS, LZMA, LZMA2, LZJB)
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Unified LZ Family Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Implements Lempel-Ziv family algorithms: LZ77, LZ78, LZW, LZ4, LZSS, LZMA, LZMA2, LZJB.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-# Resolves format identifier integer from string name or returns integer.
-pub function resolve_lz_format(name)
+## Resolves format identifier integer from string name or returns integer.
+##
+## ### Parameters
+## - `name`: Format identifier string or integer ID.
+##
+## ### Returns
+## Integer ID representing the LZ format.
+pub function resolve_lz_format(name) -> int
     if name == "lz77"
         return 0
     end
@@ -34,12 +42,26 @@ pub function resolve_lz_format(name)
     return name
 end
 
-pub function format_from_str(name)
+## Alias for `resolve_lz_format`.
+##
+## ### Parameters
+## - `name`: Format identifier string or integer ID.
+##
+## ### Returns
+## Integer ID representing the LZ format.
+pub function format_from_str(name) -> int
     return resolve_lz_format(name)
 end
 
-# Core compressor for byte arrays
-pub function internal_lz_compress(bytes, format)
+## Core compressor for byte arrays.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+## - `format`: Integer format code.
+##
+## ### Returns
+## Compressed byte array.
+pub function internal_lz_compress(bytes, format: int) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -67,8 +89,15 @@ pub function internal_lz_compress(bytes, format)
     return result
 end
 
-# Core compressor for string input
-pub function internal_lz_compress_str(text, format)
+## Core compressor for string input.
+##
+## ### Parameters
+## - `text`: String to compress.
+## - `format`: Integer format code.
+##
+## ### Returns
+## Compressed byte array.
+pub function internal_lz_compress_str(text: str, format: int) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -95,8 +124,15 @@ pub function internal_lz_compress_str(text, format)
     return result
 end
 
-# Core decompressor returning byte arrays
-pub function internal_lz_decompress(bytes, format)
+## Core decompressor returning byte arrays.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+## - `format`: Integer format code.
+##
+## ### Returns
+## Decompressed byte array.
+pub function internal_lz_decompress(bytes, format: int) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -124,8 +160,15 @@ pub function internal_lz_decompress(bytes, format)
     return result
 end
 
-# Core decompressor returning UTF-8 strings
-pub function internal_lz_decompress_str(bytes, format)
+## Core decompressor returning UTF-8 strings.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+## - `format`: Integer format code.
+##
+## ### Returns
+## Decompressed string.
+pub function internal_lz_decompress_str(bytes, format: int) -> str
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -154,137 +197,205 @@ pub function internal_lz_decompress_str(bytes, format)
 end
 
 # --- Generic APIs ---
-pub function lz_compress(bytes, format)
+
+## Compresses byte data using the requested LZ format.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+## - `format`: Format name string (e.g. `"lz77"`, `"lzw"`) or format ID.
+##
+## ### Returns
+## Compressed byte array.
+pub function lz_compress(bytes, format) -> array
     return internal_lz_compress(bytes, resolve_lz_format(format))
 end
 
-pub function lz_compress_str(text, format)
+## Compresses string data using the requested LZ format.
+##
+## ### Parameters
+## - `text`: String to compress.
+## - `format`: Format name string or format ID.
+##
+## ### Returns
+## Compressed byte array.
+pub function lz_compress_str(text: str, format) -> array
     return internal_lz_compress_str(text, resolve_lz_format(format))
 end
 
-pub function lz_decompress(bytes, format)
+## Decompresses byte data using the requested LZ format.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+## - `format`: Format name string or format ID.
+##
+## ### Returns
+## Decompressed byte array.
+pub function lz_decompress(bytes, format) -> array
     return internal_lz_decompress(bytes, resolve_lz_format(format))
 end
 
-pub function lz_decompress_str(bytes, format)
+## Decompresses byte data into a string using the requested LZ format.
+##
+## ### Parameters
+## - `bytes`: Compressed byte array.
+## - `format`: Format name string or format ID.
+##
+## ### Returns
+## Decompressed string.
+pub function lz_decompress_str(bytes, format) -> str
     return internal_lz_decompress_str(bytes, resolve_lz_format(format))
 end
 
 # --- LZ77 Specific APIs (Format 0) ---
-pub function lz77(bytes)
+
+## Compresses byte data using LZ77.
+pub function lz77(bytes) -> array
     return internal_lz_compress(bytes, 0)
 end
 
-pub function lz77_str(text)
+## Compresses string data using LZ77.
+pub function lz77_str(text: str) -> array
     return internal_lz_compress_str(text, 0)
 end
 
-pub function unlz77(bytes)
+## Decompresses LZ77 byte data into a byte array.
+pub function unlz77(bytes) -> array
     return internal_lz_decompress(bytes, 0)
 end
 
-pub function unlz77_str(bytes)
+## Decompresses LZ77 byte data directly into a string.
+pub function unlz77_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 0)
 end
 
 # --- LZ78 Specific APIs (Format 1) ---
-pub function lz78(bytes)
+
+## Compresses byte data using LZ78.
+pub function lz78(bytes) -> array
     return internal_lz_compress(bytes, 1)
 end
 
-pub function lz78_str(text)
+## Compresses string data using LZ78.
+pub function lz78_str(text: str) -> array
     return internal_lz_compress_str(text, 1)
 end
 
-pub function unlz78(bytes)
+## Decompresses LZ78 byte data into a byte array.
+pub function unlz78(bytes) -> array
     return internal_lz_decompress(bytes, 1)
 end
 
-pub function unlz78_str(bytes)
+## Decompresses LZ78 byte data directly into a string.
+pub function unlz78_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 1)
 end
 
 # --- LZW Specific APIs (Format 2) ---
-pub function lzw(bytes)
+
+## Compresses byte data using LZW.
+pub function lzw(bytes) -> array
     return internal_lz_compress(bytes, 2)
 end
 
-pub function lzw_str(text)
+## Compresses string data using LZW.
+pub function lzw_str(text: str) -> array
     return internal_lz_compress_str(text, 2)
 end
 
-pub function unlzw(bytes)
+## Decompresses LZW byte data into a byte array.
+pub function unlzw(bytes) -> array
     return internal_lz_decompress(bytes, 2)
 end
 
-pub function unlzw_str(bytes)
+## Decompresses LZW byte data directly into a string.
+pub function unlzw_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 2)
 end
 
 # --- LZSS Specific APIs (Format 4) ---
-pub function lzss(bytes)
+
+## Compresses byte data using LZSS.
+pub function lzss(bytes) -> array
     return internal_lz_compress(bytes, 4)
 end
 
-pub function lzss_str(text)
+## Compresses string data using LZSS.
+pub function lzss_str(text: str) -> array
     return internal_lz_compress_str(text, 4)
 end
 
-pub function unlzss(bytes)
+## Decompresses LZSS byte data into a byte array.
+pub function unlzss(bytes) -> array
     return internal_lz_decompress(bytes, 4)
 end
 
-pub function unlzss_str(bytes)
+## Decompresses LZSS byte data directly into a string.
+pub function unlzss_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 4)
 end
 
 # --- LZMA Specific APIs (Format 5) ---
-pub function lzma(bytes)
+
+## Compresses byte data using LZMA.
+pub function lzma(bytes) -> array
     return internal_lz_compress(bytes, 5)
 end
 
-pub function lzma_str(text)
+## Compresses string data using LZMA.
+pub function lzma_str(text: str) -> array
     return internal_lz_compress_str(text, 5)
 end
 
-pub function unlzma(bytes)
+## Decompresses LZMA byte data into a byte array.
+pub function unlzma(bytes) -> array
     return internal_lz_decompress(bytes, 5)
 end
 
-pub function unlzma_str(bytes)
+## Decompresses LZMA byte data directly into a string.
+pub function unlzma_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 5)
 end
 
 # --- LZMA2 Specific APIs (Format 6) ---
-pub function lzma2(bytes)
+
+## Compresses byte data using LZMA2.
+pub function lzma2(bytes) -> array
     return internal_lz_compress(bytes, 6)
 end
 
-pub function lzma2_str(text)
+## Compresses string data using LZMA2.
+pub function lzma2_str(text: str) -> array
     return internal_lz_compress_str(text, 6)
 end
 
-pub function unlzma2(bytes)
+## Decompresses LZMA2 byte data into a byte array.
+pub function unlzma2(bytes) -> array
     return internal_lz_decompress(bytes, 6)
 end
 
-pub function unlzma2_str(bytes)
+## Decompresses LZMA2 byte data directly into a string.
+pub function unlzma2_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 6)
 end
 
 # --- LZJB Specific APIs (Format 7) ---
-pub function lzjb(bytes)
+
+## Compresses byte data using LZJB.
+pub function lzjb(bytes) -> array
     return internal_lz_compress(bytes, 7)
 end
 
-pub function lzjb_str(text)
+## Compresses string data using LZJB.
+pub function lzjb_str(text: str) -> array
     return internal_lz_compress_str(text, 7)
 end
 
-pub function unlzjb(bytes)
+## Decompresses LZJB byte data into a byte array.
+pub function unlzjb(bytes) -> array
     return internal_lz_decompress(bytes, 7)
 end
 
-pub function unlzjb_str(bytes)
+## Decompresses LZJB byte data directly into a string.
+pub function unlzjb_str(bytes) -> str
     return internal_lz_decompress_str(bytes, 7)
 end

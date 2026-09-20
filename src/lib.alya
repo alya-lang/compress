@@ -1,16 +1,22 @@
-# compress - Comprehensive compression toolkit for Alya
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
-#
-# Supported 9 Compression Modules:
-#   1. brotli - Google Brotli compression (RFC 7932)
-#   2. bzip2  - Burrows-Wheeler bzip2 block compression
-#   3. deflate- RFC 1951 raw Deflate
-#   4. gzip   - RFC 1952 Gzip with CRC-32 and headers
-#   5. lz     - Lempel-Ziv family (lz4, lz77, lz78, lzjb, lzma, lzma2, lzss, lzw)
-#   6. snappy - Google Snappy high-throughput block compression
-#   7. szip   - Simple ZIP archive management and buffer compression
-#   8. zlib   - RFC 1950 Zlib with Adler-32
-#   9. zstd   - Meta/Facebook Zstandard scalable compression
+## Compress - Comprehensive Data Compression Toolkit for Alya
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+##
+## Provides high-performance compression codecs, checksum algorithms, archive
+## handling, and unified format dispatching.
+##
+## ### Supported Algorithms
+## - **Brotli** (RFC 7932)
+## - **Bzip2** (Burrows-Wheeler block sorting)
+## - **DEFLATE** (RFC 1951 raw deflate)
+## - **Gzip** (RFC 1952 deflate with gzip headers and CRC-32)
+## - **LZ Family** (LZ4, LZ77, LZ78, LZSS, LZW, LZMA, LZMA2, LZJB)
+## - **Google Snappy** (framing and raw block compression)
+## - **SZIP / ZIP** (in-memory zip and disk archive manipulation)
+## - **Zlib** (RFC 1950 deflate with zlib wrapper and Adler-32)
+## - **Zstandard** (Scalable real-time compression)
+## - **Huffman** (Optimal prefix canonical coder)
+## - **Checksums** (CRC-32, Adler-32)
 
 import "types.alya"
 import "deflate.alya"
@@ -27,10 +33,19 @@ import "checksum.alya"
 import "huffman.alya"
 
 # ═══════════════════════════════════════════════════════════════
-# Unified Format Dispatch with Pattern Matching
+# Unified Format Dispatch
 # ═══════════════════════════════════════════════════════════════
 
-pub function compress_by_format(data, format = CompressionFormat.Gzip, level = CompressionLevel.Default)
+## Compresses input data using the specified compression format and level.
+##
+## ### Parameters
+## - `data`: Input byte array or string.
+## - `format`: Format identifier (`CompressionFormat` enum or string name).
+## - `level`: Compression level preset (`CompressionLevel` or integer).
+##
+## ### Returns
+## Compressed byte array.
+pub function compress_by_format(data, format = CompressionFormat.Gzip, level = CompressionLevel.Default) -> array
     when format
         is CompressionFormat.Deflate, "deflate" then return deflate_level(data, level)
         is CompressionFormat.Zlib, "zlib" then return zlib_level(data, level)
@@ -40,11 +55,20 @@ pub function compress_by_format(data, format = CompressionFormat.Gzip, level = C
         is CompressionFormat.Brotli, "brotli" then return brotli_quality(data, level)
         is CompressionFormat.Bzip2, "bzip2" then return bzip2_level(data, level)
         is CompressionFormat.Zstd, "zstd" then return zstd_level(data, level)
+        is "lz77", "lz78", "lzw", "lzss", "lzma", "lzma2", "lzjb" then return lz_compress(data, format)
         else return gzip(data)
     end
 end
 
-pub function decompress_by_format(data, format = CompressionFormat.Gzip)
+## Decompresses data using the specified compression format.
+##
+## ### Parameters
+## - `data`: Compressed byte array.
+## - `format`: Format identifier (`CompressionFormat` enum or string name).
+##
+## ### Returns
+## Decompressed byte array.
+pub function decompress_by_format(data, format = CompressionFormat.Gzip) -> array
     when format
         is CompressionFormat.Deflate, "deflate" then return inflate(data)
         is CompressionFormat.Zlib, "zlib" then return unzlib(data)
@@ -54,233 +78,338 @@ pub function decompress_by_format(data, format = CompressionFormat.Gzip)
         is CompressionFormat.Brotli, "brotli" then return unbrotli(data)
         is CompressionFormat.Bzip2, "bzip2" then return unbzip2(data)
         is CompressionFormat.Zstd, "zstd" then return unzstd(data)
+        is "lz77", "lz78", "lzw", "lzss", "lzma", "lzma2", "lzjb" then return lz_decompress(data, format)
         else return gunzip(data)
     end
 end
 
-# --- 1. BROTLI (RFC 7932) ---
-pub function brotli(bytes)
+## Computes a checksum for byte array or text string using CRC-32 or Adler-32.
+##
+## ### Parameters
+## - `data`: Byte array or string.
+## - `algorithm`: Checksum algorithm name (`"crc32"` or `"adler32"`).
+##
+## ### Returns
+## 32-bit unsigned integer checksum.
+pub function compute_checksum(data, algorithm: str = "crc32") -> int
+    if algorithm == "adler32"
+        if type(data) == "string"
+            return adler32_str(data)
+        end
+        return adler32(data)
+    end
+    if type(data) == "string"
+        return crc32_str(data)
+    end
+    return crc32(data)
+end
+
+# ═══════════════════════════════════════════════════════════════
+# 1. Brotli (RFC 7932)
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using Brotli (default quality 11).
+pub function brotli(bytes) -> array
     return brotli_compress(bytes)
 end
 
-pub function brotli_str(text)
+## Compresses a string using Brotli (default quality 11).
+pub function brotli_str(text: str) -> array
     return brotli_compress_str(text)
 end
 
-pub function brotli_quality(bytes, quality)
+## Compresses a byte array using Brotli with specific quality (0..11).
+pub function brotli_quality(bytes, quality: int) -> array
     return brotli_compress_level(bytes, quality)
 end
 
-pub function brotli_str_quality(text, quality)
+## Compresses a string using Brotli with specific quality (0..11).
+pub function brotli_str_quality(text: str, quality: int) -> array
     return brotli_compress_str_level(text, quality)
 end
 
-pub function unbrotli(bytes)
+## Decompresses Brotli data into a byte array.
+pub function unbrotli(bytes) -> array
     return brotli_decompress(bytes)
 end
 
-pub function unbrotli_str(bytes)
+## Decompresses Brotli data directly into a UTF-8 string.
+pub function unbrotli_str(bytes) -> str
     return brotli_decompress_str(bytes)
 end
 
-# --- 2. BZIP2 (Burrows-Wheeler) ---
-pub function bzip2(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 2. Bzip2 (Burrows-Wheeler)
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using Bzip2 (default 900k block size).
+pub function bzip2(bytes) -> array
     return bzip2_compress(bytes)
 end
 
-pub function bzip2_str(text)
+## Compresses a string using Bzip2 (default 900k block size).
+pub function bzip2_str(text: str) -> array
     return bzip2_compress_str(text)
 end
 
-pub function bzip2_block(bytes, block_100k)
+## Compresses a byte array using Bzip2 with specific block size (1..9).
+pub function bzip2_block(bytes, block_100k: int) -> array
     return bzip2_compress_level(bytes, block_100k)
 end
 
-pub function bzip2_str_block(text, block_100k)
+## Compresses a string using Bzip2 with specific block size (1..9).
+pub function bzip2_str_block(text: str, block_100k: int) -> array
     return bzip2_compress_str_level(text, block_100k)
 end
 
-pub function bzip2_level(bytes, level)
+## Alias for `bzip2_block`.
+pub function bzip2_level(bytes, level: int) -> array
     return bzip2_compress_level(bytes, level)
 end
 
-pub function bzip2_str_level(text, level)
+## Alias for `bzip2_str_block`.
+pub function bzip2_str_level(text: str, level: int) -> array
     return bzip2_compress_str_level(text, level)
 end
 
-pub function unbzip2(bytes)
+## Decompresses Bzip2 data into a byte array.
+pub function unbzip2(bytes) -> array
     return bzip2_decompress(bytes)
 end
 
-pub function unbzip2_str(bytes)
+## Decompresses Bzip2 data directly into a UTF-8 string.
+pub function unbzip2_str(bytes) -> str
     return bzip2_decompress_str(bytes)
 end
 
-# --- 3. DEFLATE (RFC 1951) ---
-pub function deflate(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 3. DEFLATE (RFC 1951)
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using raw DEFLATE (default level 6).
+pub function deflate(bytes) -> array
     return deflate_compress(bytes)
 end
 
-pub function deflate_str(text)
+## Compresses a string using raw DEFLATE (default level 6).
+pub function deflate_str(text: str) -> array
     return deflate_compress_str(text)
 end
 
-pub function deflate_level(bytes, level)
+## Compresses a byte array using raw DEFLATE with specified level (1..9).
+pub function deflate_level(bytes, level: int) -> array
     return deflate_compress_level(bytes, level)
 end
 
-pub function deflate_str_level(text, level)
+## Compresses a string using raw DEFLATE with specified level (1..9).
+pub function deflate_str_level(text: str, level: int) -> array
     return deflate_compress_str_level(text, level)
 end
 
-pub function inflate(bytes)
+## Decompresses raw DEFLATE data into a byte array.
+pub function inflate(bytes) -> array
     return deflate_decompress(bytes)
 end
 
-pub function inflate_str(bytes)
+## Decompresses raw DEFLATE data directly into a UTF-8 string.
+pub function inflate_str(bytes) -> str
     return deflate_decompress_str(bytes)
 end
 
-# --- 4. GZIP (RFC 1952) ---
-pub function gzip(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 4. Gzip (RFC 1952)
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using Gzip (default level 6).
+pub function gzip(bytes) -> array
     return gzip_compress(bytes)
 end
 
-pub function gzip_str(text)
+## Compresses a string using Gzip (default level 6).
+pub function gzip_str(text: str) -> array
     return gzip_compress_str(text)
 end
 
-pub function gzip_level(bytes, level)
+## Compresses a byte array using Gzip with specified level (1..9).
+pub function gzip_level(bytes, level: int) -> array
     return gzip_compress_level(bytes, level)
 end
 
-pub function gzip_str_level(text, level)
+## Compresses a string using Gzip with specified level (1..9).
+pub function gzip_str_level(text: str, level: int) -> array
     return gzip_compress_str_level(text, level)
 end
 
-pub function gunzip(bytes)
+## Decompresses Gzip data into a byte array.
+pub function gunzip(bytes) -> array
     return gzip_decompress(bytes)
 end
 
-pub function gunzip_str(bytes)
+## Decompresses Gzip data directly into a UTF-8 string.
+pub function gunzip_str(bytes) -> str
     return gzip_decompress_str(bytes)
 end
 
-# --- 5. LZ FAMILY (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW) ---
+# ═══════════════════════════════════════════════════════════════
+# 5. LZ Family (LZ4)
+# ═══════════════════════════════════════════════════════════════
 
-pub function lz4(bytes)
+## Compresses a byte array using LZ4.
+pub function lz4(bytes) -> array
     return lz4_compress(bytes)
 end
 
-pub function lz4_str(text)
+## Compresses a string using LZ4.
+pub function lz4_str(text: str) -> array
     return lz4_compress_str(text)
 end
 
-pub function unlz4(bytes)
+## Decompresses LZ4 data into a byte array.
+pub function unlz4(bytes) -> array
     return lz4_decompress(bytes)
 end
 
-pub function unlz4_str(bytes)
+## Decompresses LZ4 data directly into a UTF-8 string.
+pub function unlz4_str(bytes) -> str
     return lz4_decompress_str(bytes)
 end
 
-# --- 6. SNAPPY ---
-pub function snappy(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 6. Snappy
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using Google Snappy.
+pub function snappy(bytes) -> array
     return snappy_compress(bytes)
 end
 
-pub function snappy_str(text)
+## Compresses a string using Google Snappy.
+pub function snappy_str(text: str) -> array
     return snappy_compress_str(text)
 end
 
-pub function unsnappy(bytes)
+## Decompresses Snappy data into a byte array.
+pub function unsnappy(bytes) -> array
     return snappy_decompress(bytes)
 end
 
-pub function unsnappy_str(bytes)
+## Decompresses Snappy data directly into a UTF-8 string.
+pub function unsnappy_str(bytes) -> str
     return snappy_decompress_str(bytes)
 end
 
-# --- 7. SZIP / ZIP ARCHIVE ---
-pub function szip(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 7. SZIP
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using in-memory SZIP / Deflate.
+pub function szip(bytes) -> array
     return szip_compress(bytes)
 end
 
-pub function szip_str(text)
+## Compresses a string using in-memory SZIP / Deflate.
+pub function szip_str(text: str) -> array
     return szip_compress_str(text)
 end
 
-pub function unszip(bytes)
+## Decompresses SZIP data into a byte array.
+pub function unszip(bytes) -> array
     return szip_decompress(bytes)
 end
 
-pub function unszip_str(bytes)
+## Decompresses SZIP data directly into a UTF-8 string.
+pub function unszip_str(bytes) -> str
     return szip_decompress_str(bytes)
 end
 
-# --- 8. ZLIB (RFC 1950) ---
-pub function zlib(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 8. Zlib (RFC 1950)
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using Zlib (default level 6).
+pub function zlib(bytes) -> array
     return zlib_compress(bytes)
 end
 
-pub function zlib_str(text)
+## Compresses a string using Zlib (default level 6).
+pub function zlib_str(text: str) -> array
     return zlib_compress_str(text)
 end
 
-pub function zlib_level(bytes, level)
+## Compresses a byte array using Zlib with specified level (1..9).
+pub function zlib_level(bytes, level: int) -> array
     return zlib_compress_level(bytes, level)
 end
 
-pub function zlib_str_level(text, level)
+## Compresses a string using Zlib with specified level (1..9).
+pub function zlib_str_level(text: str, level: int) -> array
     return zlib_compress_str_level(text, level)
 end
 
-pub function unzlib(bytes)
+## Decompresses Zlib data into a byte array.
+pub function unzlib(bytes) -> array
     return zlib_decompress(bytes)
 end
 
-pub function unzlib_str(bytes)
+## Decompresses Zlib data directly into a UTF-8 string.
+pub function unzlib_str(bytes) -> str
     return zlib_decompress_str(bytes)
 end
 
-# --- 9. ZSTD (Meta Zstandard) ---
-pub function zstd(bytes)
+# ═══════════════════════════════════════════════════════════════
+# 9. Zstandard (ZSTD)
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a byte array using Zstandard (default level 3).
+pub function zstd(bytes) -> array
     return zstd_compress(bytes)
 end
 
-pub function zstd_str(text)
+## Compresses a string using Zstandard (default level 3).
+pub function zstd_str(text: str) -> array
     return zstd_compress_str(text)
 end
 
-pub function zstd_level(bytes, level)
+## Compresses a byte array using Zstandard with specified level (1..22).
+pub function zstd_level(bytes, level: int) -> array
     return zstd_compress_level(bytes, level)
 end
 
-pub function zstd_str_level(text, level)
+## Compresses a string using Zstandard with specified level (1..22).
+pub function zstd_str_level(text: str, level: int) -> array
     return zstd_compress_str_level(text, level)
 end
 
-pub function unzstd(bytes)
+## Decompresses Zstandard data into a byte array.
+pub function unzstd(bytes) -> array
     return zstd_decompress(bytes)
 end
 
-pub function unzstd_str(bytes)
+## Decompresses Zstandard data directly into a UTF-8 string.
+pub function unzstd_str(bytes) -> str
     return zstd_decompress_str(bytes)
 end
 
-# --- 10. HUFFMAN (Optimal Prefix Codec) ---
-pub function huffman(text)
+# ═══════════════════════════════════════════════════════════════
+# 10. Huffman Coding
+# ═══════════════════════════════════════════════════════════════
+
+## Compresses a string using canonical Huffman prefix coding.
+pub function huffman(text: str) -> array
     return huffman_compress(text)
 end
 
-pub function huffman_str(text)
+## Compresses a string using canonical Huffman prefix coding.
+pub function huffman_str(text: str) -> array
     return huffman_compress(text)
 end
 
-pub function unhuffman(bytes)
+## Decompresses Huffman data into a string.
+pub function unhuffman(bytes) -> str
     return huffman_decompress(bytes)
 end
 
-pub function unhuffman_str(bytes)
+## Decompresses Huffman data directly into a UTF-8 string.
+pub function unhuffman_str(bytes) -> str
     return huffman_decompress(bytes)
 end

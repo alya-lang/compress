@@ -1,9 +1,17 @@
-# Types, constants, and memory helpers for compress
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Compress Types & Data Structures
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Defines compression levels, format identifiers, option structures, and memory buffer helpers.
 
 import "std/mem"
 
-# --- Compression Levels ---
+## Enumeration of standard compression levels.
+##
+## Defines compression effort tradeoffs:
+## - `NoCompression`: Store without compression (`0`).
+## - `Fastest`: Maximum throughput, minimum compression ratio (`1`).
+## - `Default`: Balanced compromise between speed and compression ratio (`6`).
+## - `Best`: Maximum compression ratio, highest CPU effort (`9`).
 pub enum CompressionLevel
     NoCompression = 0,
     Fastest = 1,
@@ -11,12 +19,24 @@ pub enum CompressionLevel
     Best = 9
 end
 
-pub let LEVEL_NO_COMPRESSION = 0
-pub let LEVEL_FASTEST = 1
-pub let LEVEL_DEFAULT = 6
-pub let LEVEL_BEST = 9
+pub const LEVEL_NO_COMPRESSION = 0
+pub const LEVEL_FASTEST = 1
+pub const LEVEL_DEFAULT = 6
+pub const LEVEL_BEST = 9
 
-# --- Format Identifiers ---
+## Enumeration of supported compression algorithms and formats.
+##
+## Identifies the underlying lossless compression algorithm:
+## - `Deflate`: RFC 1951 raw DEFLATE stream.
+## - `Zlib`: RFC 1950 Zlib container with Adler-32 checksum.
+## - `Gzip`: RFC 1952 Gzip container with CRC-32 checksum.
+## - `Lz4`: Ultra-fast LZ4 block compression.
+## - `Snappy`: Google Snappy high-throughput compression.
+## - `Brotli`: Google Brotli compression (RFC 7932).
+## - `Bzip2`: Burrows-Wheeler block sorting compression.
+## - `Zstd`: Meta Zstandard scalable dictionary compression.
+## - `Huffman`: Pure Alya optimal prefix-tree entropy coding.
+## - `Szip`: Simple ZIP archive and container format.
 pub enum CompressionFormat
     Deflate = 1,
     Zlib = 2,
@@ -30,32 +50,54 @@ pub enum CompressionFormat
     Szip = 10
 end
 
-pub let FORMAT_DEFLATE = "deflate"
-pub let FORMAT_ZLIB = "zlib"
-pub let FORMAT_GZIP = "gzip"
-pub let FORMAT_LZ4 = "lz4"
-pub let FORMAT_SNAPPY = "snappy"
-pub let FORMAT_BROTLI = "brotli"
-pub let FORMAT_BZIP2 = "bzip2"
-pub let FORMAT_ZSTD = "zstd"
+pub const FORMAT_DEFLATE = "deflate"
+pub const FORMAT_ZLIB = "zlib"
+pub const FORMAT_GZIP = "gzip"
+pub const FORMAT_LZ4 = "lz4"
+pub const FORMAT_SNAPPY = "snappy"
+pub const FORMAT_BROTLI = "brotli"
+pub const FORMAT_BZIP2 = "bzip2"
+pub const FORMAT_ZSTD = "zstd"
 
-# --- Configuration Structs ---
+## Compression configuration options.
+##
+## Encapsulates parameters for customizing compression operations.
+##
+## ### Fields
+## - `level`: Compression effort level integer (e.g. `LEVEL_DEFAULT`).
 pub struct CompressOptions
-    level
+    level: int
 end
 
-pub function CompressOptions.with_level(self, lvl)
+## Sets the compression level and returns the updated options instance.
+##
+## ### Parameters
+## - `self`: Target `CompressOptions` instance.
+## - `lvl`: Desired compression level integer.
+##
+## ### Returns
+## The updated `CompressOptions` instance.
+pub function CompressOptions.with_level(self, lvl: int) -> CompressOptions
     self.level = lvl
     return self
 end
 
-pub function default_compress_options()
+## Creates a new `CompressOptions` instance initialized to default settings (`LEVEL_DEFAULT`).
+##
+## ### Returns
+## A `CompressOptions` instance with `level = LEVEL_DEFAULT`.
+pub function default_compress_options() -> CompressOptions
     return CompressOptions(LEVEL_DEFAULT)
 end
 
-# --- Data Preparation Helpers ---
-
-pub function prepare_bytes_input(bytes)
+## Prepares a list of byte integers for C-FFI consumption by copying into native memory.
+##
+## ### Parameters
+## - `bytes`: List of byte integers `[0..255]`.
+##
+## ### Returns
+## A 3-element array `[pointer, length, is_dynamically_allocated]`.
+pub function prepare_bytes_input(bytes) -> array
     let n = len(bytes)
     let p = alloc(n + 1)
     let i = 0
@@ -67,21 +109,38 @@ pub function prepare_bytes_input(bytes)
     return [p, n, 1]
 end
 
-pub function prepare_string_input(text)
+## Prepares an Alya string for C-FFI by obtaining its direct byte pointer.
+##
+## ### Parameters
+## - `text`: Target string.
+##
+## ### Returns
+## A 3-element array `[pointer, length, is_dynamically_allocated]`.
+pub function prepare_string_input(text) -> array
     let slen = len(text)
     let p = str_to_ptr(text)
     return [p, slen, 0]
 end
 
-# Frees temporary input buffer if it was allocated dynamically.
+## Frees temporary input buffer if it was dynamically allocated by `prepare_bytes_input`.
+##
+## ### Parameters
+## - `prep`: 3-element array returned by `prepare_bytes_input`.
 pub function free_prepared_input(prep)
     if prep[2] == 1
         free(prep[0])
     end
 end
 
-# Converts a contiguous C byte buffer at 'ptr' of size 'len' into an Alya list of bytes.
-pub function ptr_to_byte_list(ptr, len)
+## Copies a contiguous native C byte buffer into a newly allocated Alya byte list.
+##
+## ### Parameters
+## - `ptr`: Pointer to native memory buffer.
+## - `len`: Number of bytes to copy.
+##
+## ### Returns
+## Array of byte integers `[0..255]`.
+pub function ptr_to_byte_list(ptr, len: int) -> array
     let res = []
     let i = 0
     while i < len
@@ -91,8 +150,15 @@ pub function ptr_to_byte_list(ptr, len)
     return res
 end
 
-# Converts a contiguous C byte buffer at 'ptr' of size 'len' into an Alya string.
-pub function ptr_to_string(ptr, len)
+## Converts a contiguous native C byte buffer into an Alya string.
+##
+## ### Parameters
+## - `ptr`: Pointer to native memory buffer.
+## - `len`: Length of string in bytes.
+##
+## ### Returns
+## Converted Alya string.
+pub function ptr_to_string(ptr, len: int) -> string
     if len == 0
         return ""
     end
@@ -100,8 +166,14 @@ pub function ptr_to_string(ptr, len)
     return str_clone(str_from_ptr(ptr))
 end
 
-# Converts an Alya string into a list of byte integers [0..255].
-pub function bytes_from_string(s)
+## Converts an Alya string into a list of byte integers `[0..255]`.
+##
+## ### Parameters
+## - `s`: Input string.
+##
+## ### Returns
+## Array of byte integers.
+pub function bytes_from_string(s) -> array
     let p = str_to_ptr(s)
     let slen = len(s)
     let res = []
@@ -113,8 +185,14 @@ pub function bytes_from_string(s)
     return res
 end
 
-# Converts an Alya list of byte integers [0..255] into a UTF-8 string.
-pub function bytes_to_string(bytes)
+## Converts a list of byte integers `[0..255]` into an Alya UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers.
+##
+## ### Returns
+## Decoded UTF-8 string.
+pub function bytes_to_string(bytes) -> string
     let n = len(bytes)
     if n == 0
         return ""
@@ -131,8 +209,14 @@ pub function bytes_to_string(bytes)
     return s
 end
 
-# Converts a list of bytes into a lowercase hexadecimal string.
-pub function bytes_to_hex(bytes)
+## Converts a list of byte integers into a lowercase hexadecimal string.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers.
+##
+## ### Returns
+## Hexadecimal representation string.
+pub function bytes_to_hex(bytes) -> string
     let hex_chars = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
     let out = ""
     for b in bytes
@@ -143,8 +227,17 @@ pub function bytes_to_hex(bytes)
     return out
 end
 
-# Converts a hexadecimal string into a list of byte integers.
-pub function bytes_from_hex(hex_str)
+## Converts a hexadecimal string into an array of byte integers.
+##
+## ### Parameters
+## - `hex_str`: Hexadecimal string with an even number of characters.
+##
+## ### Returns
+## Array of parsed byte integers.
+##
+## ### Throws
+## Throws an error if the hex string has an odd length or contains invalid characters.
+pub function bytes_from_hex(hex_str) -> array
     let n = len(hex_str)
     if n % 2 != 0
         throw "Invalid hex string length: must be even"
@@ -165,7 +258,14 @@ pub function bytes_from_hex(hex_str)
     return res
 end
 
-pub function _hex_char_val(ch)
+## Parses a single hexadecimal character into its integer value (0..15).
+##
+## ### Parameters
+## - `ch`: Single character string.
+##
+## ### Returns
+## Integer value from `0` to `15`, or `-1` if invalid.
+pub function _hex_char_val(ch) -> int
     when ch
         is "0" then return 0
         is "1" then return 1

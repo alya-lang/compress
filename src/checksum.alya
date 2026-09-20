@@ -1,54 +1,108 @@
-# CRC-32 and Adler-32 checksum utilities
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Checksum Utilities
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## High-performance CRC-32 (ISO 3309 / ITU-T V.42) and Adler-32 (RFC 1950) checksum calculations.
 
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-# Computes CRC-32 checksum of a byte array.
-pub function crc32(bytes)
+## Computes the CRC-32 checksum of a byte array.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Unsigned 32-bit integer checksum value.
+pub function crc32(bytes) -> int
     return crc32_update(0, bytes)
 end
 
-# Computes or continues CRC-32 checksum of a byte array with an initial seed.
-pub function crc32_update(initial_crc, bytes)
+## Computes or continues the CRC-32 checksum of a byte array starting from an initial seed.
+##
+## ### Parameters
+## - `initial_crc`: Previous or initial CRC-32 value.
+## - `bytes`: Array of byte integers.
+##
+## ### Returns
+## Updated 32-bit checksum integer.
+pub function crc32_update(initial_crc: int, bytes) -> int
     let prep = prepare_bytes_input(bytes)
     let val = alya_crc32(initial_crc, prep[0], prep[1])
     free_prepared_input(prep)
     return val
 end
 
-# Computes CRC-32 checksum of a string.
-pub function crc32_str(text)
+## Computes the CRC-32 checksum of a string.
+##
+## ### Parameters
+## - `text`: Target string.
+##
+## ### Returns
+## Unsigned 32-bit checksum value.
+pub function crc32_str(text: string) -> int
     return crc32_str_update(0, text)
 end
 
-# Computes or continues CRC-32 checksum of a string with an initial seed.
-pub function crc32_str_update(initial_crc, text)
+## Computes or continues the CRC-32 checksum of a string starting from an initial seed.
+##
+## ### Parameters
+## - `initial_crc`: Previous or initial CRC-32 value.
+## - `text`: Target string.
+##
+## ### Returns
+## Updated 32-bit checksum integer.
+pub function crc32_str_update(initial_crc: int, text: string) -> int
     let prep = prepare_string_input(text)
     let val = alya_crc32(initial_crc, prep[0], prep[1])
     return val
 end
 
-# Computes Adler-32 checksum of a byte array.
-pub function adler32(bytes)
+## Computes the Adler-32 checksum of a byte array.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Unsigned 32-bit integer checksum value.
+pub function adler32(bytes) -> int
     return adler32_update(1, bytes)
 end
 
-# Computes or continues Adler-32 checksum of a byte array with an initial seed (default 1).
-pub function adler32_update(initial_adler, bytes)
+## Computes or continues the Adler-32 checksum of a byte array with an initial seed (default 1).
+##
+## ### Parameters
+## - `initial_adler`: Previous or initial Adler-32 value (default 1).
+## - `bytes`: Array of byte integers.
+##
+## ### Returns
+## Updated 32-bit checksum integer.
+pub function adler32_update(initial_adler: int, bytes) -> int
     let prep = prepare_bytes_input(bytes)
     let val = alya_adler32(initial_adler, prep[0], prep[1])
     free_prepared_input(prep)
     return val
 end
 
-# Computes Adler-32 checksum of a string.
-pub function adler32_str(text)
+## Computes the Adler-32 checksum of a string.
+##
+## ### Parameters
+## - `text`: Target string.
+##
+## ### Returns
+## Unsigned 32-bit integer checksum value.
+pub function adler32_str(text: string) -> int
     return adler32_str_update(1, text)
 end
 
-# Computes or continues Adler-32 checksum of a string with an initial seed (default 1).
-pub function adler32_str_update(initial_adler, text)
+## Computes or continues the Adler-32 checksum of a string with an initial seed (default 1).
+##
+## ### Parameters
+## - `initial_adler`: Previous or initial Adler-32 value (default 1).
+## - `text`: Target string.
+##
+## ### Returns
+## Updated 32-bit checksum integer.
+pub function adler32_str_update(initial_adler: int, text: string) -> int
     let prep = prepare_string_input(text)
     let val = alya_adler32(initial_adler, prep[0], prep[1])
     return val

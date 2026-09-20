@@ -1,7 +1,7 @@
 # Huffman Compression & Coding Showcase
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
-import "../src/lib.alya"
+import "../src/lib.alya" as compress
 
 say "=== Alya compress: Huffman Coding Showcase ==="
 
@@ -10,10 +10,10 @@ say "Original Text (" + str(len(sample_text)) + " bytes):"
 say sample_text
 say ""
 
-let compressed = huffman_compress(sample_text)
+let compressed = compress::huffman_str(sample_text)
 say "Compressed Size: " + str(len(compressed)) + " bytes"
 
-let decompressed = huffman_decompress(compressed)
+let decompressed = compress::unhuffman_str(compressed)
 say "Decompressed Text (" + str(len(decompressed)) + " bytes):"
 say decompressed
 say ""

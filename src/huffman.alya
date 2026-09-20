@@ -1,7 +1,16 @@
-# Huffman Coding & Canonical Compression Algorithm
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Huffman Coding & Canonical Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Variable-length prefix code compression and decompression routines.
 
-pub function huffman_compress(text)
+## Compresses a string using Huffman coding.
+##
+## ### Parameters
+## - `text`: Input text string to compress.
+##
+## ### Returns
+## Compressed byte array containing Huffman header, code table, and bitstream.
+pub function huffman_compress(text: str) -> array
     let tlen = len(text)
     if tlen == 0
         return []
@@ -202,7 +211,14 @@ pub function huffman_compress(text)
     return out
 end
 
-pub function huffman_decompress(bytes)
+## Decompresses Huffman-coded byte data back to string.
+##
+## ### Parameters
+## - `bytes`: Compressed Huffman byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function huffman_decompress(bytes) -> str
     let blen = len(bytes)
     if blen == 0
         return ""

@@ -1,12 +1,20 @@
-# Google Snappy Block Compression and Decompression
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Google Snappy Compression Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## High-throughput byte-oriented block compression and decompression.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 
-# Compresses a byte list using Google Snappy.
-pub function snappy_compress(bytes)
+## Compresses a byte array using Google Snappy.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Compressed byte array.
+pub function snappy_compress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -31,8 +39,14 @@ pub function snappy_compress(bytes)
     return result
 end
 
-# Compresses a string using Google Snappy.
-pub function snappy_compress_str(text)
+## Compresses a string using Google Snappy.
+##
+## ### Parameters
+## - `text`: String to compress.
+##
+## ### Returns
+## Compressed byte array.
+pub function snappy_compress_str(text: str) -> array
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -56,8 +70,14 @@ pub function snappy_compress_str(text)
     return result
 end
 
-# Decompresses Snappy data into a byte array.
-pub function snappy_decompress(bytes)
+## Decompresses Snappy data into a byte array.
+##
+## ### Parameters
+## - `bytes`: Compressed Snappy byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function snappy_decompress(bytes) -> array
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -85,8 +105,14 @@ pub function snappy_decompress(bytes)
     return result
 end
 
-# Decompresses Snappy data directly into a UTF-8 string.
-pub function snappy_decompress_str(bytes)
+## Decompresses Snappy data directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Compressed Snappy byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function snappy_decompress_str(bytes) -> str
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]

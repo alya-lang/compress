@@ -1,33 +1,69 @@
-# SZIP - Simple ZIP archive and buffer compression toolkit
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## SZIP Compression & Archive Management Module
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## In-memory ZIP buffer compression and on-disk ZIP archive operations.
 
 import "std/mem"
-import "ffi.alya"
+import "ffi.alya" as alya
 import "types.alya"
 import "deflate.alya"
 
 # --- In-memory Buffer Compression (Szip / Simple Zip Deflate) ---
 
-pub function szip_compress(bytes)
+## Compresses a byte array using in-memory SZIP / Deflate.
+##
+## ### Parameters
+## - `bytes`: Array of byte integers `[0..255]`.
+##
+## ### Returns
+## Compressed byte array.
+pub function szip_compress(bytes) -> array
     return deflate_compress(bytes)
 end
 
-pub function szip_compress_str(text)
+## Compresses a string using in-memory SZIP / Deflate.
+##
+## ### Parameters
+## - `text`: String to compress.
+##
+## ### Returns
+## Compressed byte array.
+pub function szip_compress_str(text: str) -> array
     return deflate_compress_str(text)
 end
 
-pub function szip_decompress(bytes)
+## Decompresses SZIP / Deflate data into a byte array.
+##
+## ### Parameters
+## - `bytes`: Compressed SZIP byte array.
+##
+## ### Returns
+## Decompressed byte array.
+pub function szip_decompress(bytes) -> array
     return deflate_decompress(bytes)
 end
 
-pub function szip_decompress_str(bytes)
+## Decompresses SZIP / Deflate data directly into a UTF-8 string.
+##
+## ### Parameters
+## - `bytes`: Compressed SZIP byte array.
+##
+## ### Returns
+## Decompressed string.
+pub function szip_decompress_str(bytes) -> str
     return deflate_decompress_str(bytes)
 end
 
 # --- ZIP Archive Management ---
 
-# Creates a new empty ZIP archive at the given file path.
-pub function szip_create(zip_path)
+## Creates a new empty ZIP archive at the given file path.
+##
+## ### Parameters
+## - `zip_path`: Target filesystem path for the ZIP file.
+##
+## ### Returns
+## `true` on success, or throws an error.
+pub function szip_create(zip_path: str) -> bool
     let rc = alya_szip_create_archive(zip_path)
     if rc != 0
         throw "Failed to create ZIP archive '" + zip_path + "', error: " + str(rc)
@@ -35,8 +71,16 @@ pub function szip_create(zip_path)
     return true
 end
 
-# Adds a binary byte array as an entry in the ZIP archive.
-pub function szip_add_data(zip_path, archive_name, bytes)
+## Adds a binary byte array as an entry in the ZIP archive.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+## - `archive_name`: Entry name inside the ZIP archive.
+## - `bytes`: Byte array contents to store.
+##
+## ### Returns
+## `true` on success, or throws an error.
+pub function szip_add_data(zip_path: str, archive_name: str, bytes) -> bool
     let prep = prepare_bytes_input(bytes)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -48,8 +92,16 @@ pub function szip_add_data(zip_path, archive_name, bytes)
     return true
 end
 
-# Adds a text string as an entry in the ZIP archive.
-pub function szip_add_text(zip_path, archive_name, text)
+## Adds a text string as an entry in the ZIP archive.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+## - `archive_name`: Entry name inside the ZIP archive.
+## - `text`: String contents to store.
+##
+## ### Returns
+## `true` on success, or throws an error.
+pub function szip_add_text(zip_path: str, archive_name: str, text: str) -> bool
     let prep = prepare_string_input(text)
     let src_ptr = prep[0]
     let src_len = prep[1]
@@ -60,8 +112,14 @@ pub function szip_add_text(zip_path, archive_name, text)
     return true
 end
 
-# Returns the number of files contained in the ZIP archive.
-pub function szip_num_files(zip_path)
+## Returns the number of files contained in the ZIP archive.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+##
+## ### Returns
+## Count of entries in archive.
+pub function szip_num_files(zip_path: str) -> int
     let count = alya_szip_get_num_files(zip_path)
     if count < 0
         throw "Failed to read ZIP archive '" + zip_path + "'"
@@ -69,8 +127,14 @@ pub function szip_num_files(zip_path)
     return count
 end
 
-# Returns a list of filenames contained within the ZIP archive.
-pub function szip_list(zip_path)
+## Returns a list of filenames contained within the ZIP archive.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+##
+## ### Returns
+## List of entry name strings.
+pub function szip_list(zip_path: str) -> array
     let count = szip_num_files(zip_path)
     let res = []
     let buf = alloc(1024)
@@ -87,8 +151,15 @@ pub function szip_list(zip_path)
     return res
 end
 
-# Extracts a file from the ZIP archive and returns its raw byte contents.
-pub function szip_extract_data(zip_path, archive_name)
+## Extracts a file from the ZIP archive and returns its raw byte contents.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+## - `archive_name`: Entry name to extract.
+##
+## ### Returns
+## Decompressed byte array.
+pub function szip_extract_data(zip_path: str, archive_name: str) -> array
     let p_out_ptr = alloc(8)
     let p_out_len = alloc(8)
     poke_int(p_out_ptr, 0, 0)
@@ -111,8 +182,15 @@ pub function szip_extract_data(zip_path, archive_name)
     return result
 end
 
-# Extracts a file from the ZIP archive and returns its contents as a UTF-8 string.
-pub function szip_extract_text(zip_path, archive_name)
+## Extracts a file from the ZIP archive and returns its contents as a UTF-8 string.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+## - `archive_name`: Entry name to extract.
+##
+## ### Returns
+## Decompressed string.
+pub function szip_extract_text(zip_path: str, archive_name: str) -> str
     let p_out_ptr = alloc(8)
     let p_out_len = alloc(8)
     poke_int(p_out_ptr, 0, 0)
@@ -135,8 +213,16 @@ pub function szip_extract_text(zip_path, archive_name)
     return result
 end
 
-# Extracts a file from the ZIP archive directly to a destination path on disk.
-pub function szip_extract_to_file(zip_path, archive_name, dst_path)
+## Extracts a file from the ZIP archive directly to a destination path on disk.
+##
+## ### Parameters
+## - `zip_path`: Path to the ZIP file.
+## - `archive_name`: Entry name to extract.
+## - `dst_path`: Destination filesystem path.
+##
+## ### Returns
+## `true` on success, or throws an error.
+pub function szip_extract_to_file(zip_path: str, archive_name: str, dst_path: str) -> bool
     let rc = alya_szip_extract_to_file(zip_path, archive_name, dst_path)
     if rc != 0
         throw "Failed to extract '" + archive_name + "' to '" + dst_path + "', error: " + str(rc)

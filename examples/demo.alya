@@ -1,7 +1,6 @@
 # Real-world demonstration of all 9 compression modules and LZ variations in Alya
 # Supported: Brotli, Bzip2, Deflate, Gzip, LZ (LZ4, LZ77, LZ78, LZJB, LZMA, LZMA2, LZSS, LZW), Snappy, Szip, Zlib, Zstd
 
-import "std/fs"
 import "../src/lib.alya" as compress
 
 function main()
@@ -84,6 +83,9 @@ function main()
     # 8. SZIP / Simple ZIP Buffer & Archive
     let sz = compress::szip_str(text)
     let sz_restored = compress::unszip_str(sz)
+    say "[8] SZIP Buffer Compression:"
+    say "    Compressed size: " + str(len(sz)) + " bytes"
+    say "    Verified match : " + str(sz_restored == text) + "\n"
     let zip_demo_path = "demo_archive.zip"
     if file_exists(zip_demo_path)
         remove_file(zip_demo_path)
