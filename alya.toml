@@ -17,3 +17,7 @@ links = "compress"
 c-sources = ["c/miniz.c", "c/lz4.c", "c/snappy.c", "c/zstd.c", "c/bzip2.c", "c/brotli.c", "c/lz.c", "c/compress.c"]
 c-flags = ["-O2"]
 c-include-dirs = ["c"]
+
+# [lint]
+# disabled_rules = []
+# exclude = []
