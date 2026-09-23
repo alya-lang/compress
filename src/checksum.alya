@@ -53,8 +53,7 @@ end
 ## Updated 32-bit checksum integer.
 pub function crc32_str_update(initial_crc: int, text: string) -> int
     let prep = prepare_string_input(text)
-    let val = alya_crc32(initial_crc, prep[0], prep[1])
-    return val
+    return alya_crc32(initial_crc, prep[0], prep[1])
 end
 
 ## Computes the Adler-32 checksum of a byte array.
@@ -104,6 +103,5 @@ end
 ## Updated 32-bit checksum integer.
 pub function adler32_str_update(initial_adler: int, text: string) -> int
     let prep = prepare_string_input(text)
-    let val = alya_adler32(initial_adler, prep[0], prep[1])
-    return val
+    return alya_adler32(initial_adler, prep[0], prep[1])
 end
