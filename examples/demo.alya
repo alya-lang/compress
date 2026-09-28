@@ -24,6 +24,16 @@ function main()
     say "    CRC-32   : " + str(crc)
     say "    Adler-32 : " + str(adler) + "\n"
 
+    @cfg(feature = "codecs")
+    demo_codecs(text, orig_size)
+    @cfg(feature = "codecs")
+    say "All 16 compression engines/variations and ZIP archive cycles verified!"
+end
+
+main()
+
+@cfg(feature = "codecs")
+function demo_codecs(text, orig_size)
     # 2. Brotli (RFC 7932)
     let br = compress::brotli_str(text)
     let br_restored = compress::unbrotli_str(br)
@@ -139,7 +149,4 @@ function main()
     say "  ZLIB          | " + str(orig_size) + " B    | " + str(len(zl)) + " B       | OK"
     say "  ZSTD          | " + str(orig_size) + " B    | " + str(len(zst)) + " B       | OK"
     say "============================================================"
-    say "All 16 compression engines/variations and ZIP archive cycles verified!"
 end
-
-main()

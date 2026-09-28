@@ -112,6 +112,25 @@ alya add compress --git https://github.com/alya-lang/compress --branch main
 alya install
 ```
 
+### Package Features
+
+| Feature | Default | Description |
+|:---|:---:|:---|
+| `codecs` | ✅ | All format codecs (Brotli/Bzip2/Deflate/Gzip/LZ family/Snappy/SZIP/Zlib/Zstd/Huffman) and format dispatch. Without it only checksums (`crc32`, `adler32`, `compute_checksum*`) remain; dispatchers raise a clear error. |
+
+> [!NOTE]
+> The bundled C objects (`c/`) always compile regardless of features; the feature gates the Alya API surface and codegen. Slim builds still link the native library.
+
+```bash
+# Full build (default)
+alya install
+alya test
+
+# Slim build with checksums only
+alya install --no-default-features
+alya test --no-default-features
+```
+
 ---
 
 ## 🚀 Quick Start

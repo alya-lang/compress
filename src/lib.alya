@@ -19,24 +19,43 @@
 ## - **Checksums** (CRC-32, Adler-32)
 
 import "types.alya"
+@cfg(feature = "codecs")
 import "deflate.alya"
+@cfg(feature = "codecs")
 import "zlib.alya"
+@cfg(feature = "codecs")
 import "gzip.alya"
+@cfg(feature = "codecs")
 import "lz4.alya"
+@cfg(feature = "codecs")
 import "lz.alya"
+@cfg(feature = "codecs")
 import "snappy.alya"
+@cfg(feature = "codecs")
 import "zstd.alya"
+@cfg(feature = "codecs")
 import "bzip2.alya"
+@cfg(feature = "codecs")
 import "brotli.alya"
+@cfg(feature = "codecs")
+@cfg(feature = "codecs")
 import "szip.alya"
 import "checksum.alya"
+@cfg(feature = "codecs")
 import "huffman.alya"
 
 # ═══════════════════════════════════════════════════════════════
 # Unified Format Dispatch
 # ═══════════════════════════════════════════════════════════════
 
+# The slim-view stub below reuses these signatures; lint resolves stub
+# param locations to the full versions, so this range silences those
+# by-design reports in the slim view (inert in the default view).
+# alya-lint: disable unused-param
 ## Compresses input data using the specified compression format and level.
+##
+## Requires the `codecs` feature (default-on); without it every format
+## raises an unsupported-format error (checksums stay available).
 ##
 ## ### Parameters
 ## - `data`: Input byte array or string.
@@ -45,6 +64,7 @@ import "huffman.alya"
 ##
 ## ### Returns
 ## Compressed byte array.
+@cfg(feature = "codecs")
 pub function compress_by_format(data, format = CompressionFormat.Gzip, level = CompressionLevel.Default) -> array
     when format
         is CompressionFormat.Deflate, "deflate" then return deflate_level(data, level)
@@ -68,7 +88,22 @@ pub function compress_by_format(data, format = CompressionFormat.Gzip, level = C
     end
 end
 
+## Slim-view stub: format dispatch without the `codecs` feature.
+## Kept so callers get a clear error instead of an undefined reference.
+## Params are unused by design (the stub only throws).
+@cfg(not(feature = "codecs"))
+pub function compress_by_format(data, format = CompressionFormat.Gzip, level = CompressionLevel.Default) -> array
+    throw "compress: codecs feature is disabled (rebuild with default features for format dispatch)"
+end
+# alya-lint: enable unused-param
+
+# Same arrangement as compress_by_format above: silence the slim-view
+# stub reports (resolved to the full version's lines) by design.
+# alya-lint: disable unused-param
 ## Decompresses data using the specified compression format.
+##
+## Requires the `codecs` feature (default-on); without it every format
+## raises an unsupported-format error (checksums stay available).
 ##
 ## ### Parameters
 ## - `data`: Compressed byte array.
@@ -76,6 +111,7 @@ end
 ##
 ## ### Returns
 ## Decompressed byte array.
+@cfg(feature = "codecs")
 pub function decompress_by_format(data, format = CompressionFormat.Gzip) -> array
     when format
         is CompressionFormat.Deflate, "deflate" then return inflate(data)
@@ -98,6 +134,15 @@ pub function decompress_by_format(data, format = CompressionFormat.Gzip) -> arra
         else return gunzip(data)
     end
 end
+
+## Slim-view stub: format dispatch without the `codecs` feature.
+## Kept so callers get a clear error instead of an undefined reference.
+## Params are unused by design (the stub only throws).
+@cfg(not(feature = "codecs"))
+pub function decompress_by_format(data, format = CompressionFormat.Gzip) -> array
+    throw "compress: codecs feature is disabled (rebuild with default features for format dispatch)"
+end
+# alya-lint: enable unused-param
 
 ## Computes a checksum for a byte array using CRC-32 or Adler-32.
 ##
@@ -134,31 +179,37 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using Brotli (default quality 11).
+@cfg(feature = "codecs")
 pub function brotli(bytes) -> array
     return brotli_compress(bytes)
 end
 
 ## Compresses a string using Brotli (default quality 11).
+@cfg(feature = "codecs")
 pub function brotli_str(text: str) -> array
     return brotli_compress_str(text)
 end
 
 ## Compresses a byte array using Brotli with specific quality (0..11).
+@cfg(feature = "codecs")
 pub function brotli_quality(bytes, quality: int) -> array
     return brotli_compress_level(bytes, quality)
 end
 
 ## Compresses a string using Brotli with specific quality (0..11).
+@cfg(feature = "codecs")
 pub function brotli_str_quality(text: str, quality: int) -> array
     return brotli_compress_str_level(text, quality)
 end
 
 ## Decompresses Brotli data into a byte array.
+@cfg(feature = "codecs")
 pub function unbrotli(bytes) -> array
     return brotli_decompress(bytes)
 end
 
 ## Decompresses Brotli data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unbrotli_str(bytes) -> str
     return brotli_decompress_str(bytes)
 end
@@ -168,41 +219,49 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using Bzip2 (default 900k block size).
+@cfg(feature = "codecs")
 pub function bzip2(bytes) -> array
     return bzip2_compress(bytes)
 end
 
 ## Compresses a string using Bzip2 (default 900k block size).
+@cfg(feature = "codecs")
 pub function bzip2_str(text: str) -> array
     return bzip2_compress_str(text)
 end
 
 ## Compresses a byte array using Bzip2 with specific block size (1..9).
+@cfg(feature = "codecs")
 pub function bzip2_block(bytes, block_100k: int) -> array
     return bzip2_compress_level(bytes, block_100k)
 end
 
 ## Compresses a string using Bzip2 with specific block size (1..9).
+@cfg(feature = "codecs")
 pub function bzip2_str_block(text: str, block_100k: int) -> array
     return bzip2_compress_str_level(text, block_100k)
 end
 
 ## Alias for `bzip2_block`.
+@cfg(feature = "codecs")
 pub function bzip2_level(bytes, level: int) -> array
     return bzip2_compress_level(bytes, level)
 end
 
 ## Alias for `bzip2_str_block`.
+@cfg(feature = "codecs")
 pub function bzip2_str_level(text: str, level: int) -> array
     return bzip2_compress_str_level(text, level)
 end
 
 ## Decompresses Bzip2 data into a byte array.
+@cfg(feature = "codecs")
 pub function unbzip2(bytes) -> array
     return bzip2_decompress(bytes)
 end
 
 ## Decompresses Bzip2 data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unbzip2_str(bytes) -> str
     return bzip2_decompress_str(bytes)
 end
@@ -212,31 +271,37 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using raw DEFLATE (default level 6).
+@cfg(feature = "codecs")
 pub function deflate(bytes) -> array
     return deflate_compress(bytes)
 end
 
 ## Compresses a string using raw DEFLATE (default level 6).
+@cfg(feature = "codecs")
 pub function deflate_str(text: str) -> array
     return deflate_compress_str(text)
 end
 
 ## Compresses a byte array using raw DEFLATE with specified level (1..9).
+@cfg(feature = "codecs")
 pub function deflate_level(bytes, level: int) -> array
     return deflate_compress_level(bytes, level)
 end
 
 ## Compresses a string using raw DEFLATE with specified level (1..9).
+@cfg(feature = "codecs")
 pub function deflate_str_level(text: str, level: int) -> array
     return deflate_compress_str_level(text, level)
 end
 
 ## Decompresses raw DEFLATE data into a byte array.
+@cfg(feature = "codecs")
 pub function inflate(bytes) -> array
     return deflate_decompress(bytes)
 end
 
 ## Decompresses raw DEFLATE data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function inflate_str(bytes) -> str
     return deflate_decompress_str(bytes)
 end
@@ -246,31 +311,37 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using Gzip (default level 6).
+@cfg(feature = "codecs")
 pub function gzip(bytes) -> array
     return gzip_compress(bytes)
 end
 
 ## Compresses a string using Gzip (default level 6).
+@cfg(feature = "codecs")
 pub function gzip_str(text: str) -> array
     return gzip_compress_str(text)
 end
 
 ## Compresses a byte array using Gzip with specified level (1..9).
+@cfg(feature = "codecs")
 pub function gzip_level(bytes, level: int) -> array
     return gzip_compress_level(bytes, level)
 end
 
 ## Compresses a string using Gzip with specified level (1..9).
+@cfg(feature = "codecs")
 pub function gzip_str_level(text: str, level: int) -> array
     return gzip_compress_str_level(text, level)
 end
 
 ## Decompresses Gzip data into a byte array.
+@cfg(feature = "codecs")
 pub function gunzip(bytes) -> array
     return gzip_decompress(bytes)
 end
 
 ## Decompresses Gzip data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function gunzip_str(bytes) -> str
     return gzip_decompress_str(bytes)
 end
@@ -280,21 +351,25 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using LZ4.
+@cfg(feature = "codecs")
 pub function lz4(bytes) -> array
     return lz4_compress(bytes)
 end
 
 ## Compresses a string using LZ4.
+@cfg(feature = "codecs")
 pub function lz4_str(text: str) -> array
     return lz4_compress_str(text)
 end
 
 ## Decompresses LZ4 data into a byte array.
+@cfg(feature = "codecs")
 pub function unlz4(bytes) -> array
     return lz4_decompress(bytes)
 end
 
 ## Decompresses LZ4 data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unlz4_str(bytes) -> str
     return lz4_decompress_str(bytes)
 end
@@ -304,21 +379,25 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using Google Snappy.
+@cfg(feature = "codecs")
 pub function snappy(bytes) -> array
     return snappy_compress(bytes)
 end
 
 ## Compresses a string using Google Snappy.
+@cfg(feature = "codecs")
 pub function snappy_str(text: str) -> array
     return snappy_compress_str(text)
 end
 
 ## Decompresses Snappy data into a byte array.
+@cfg(feature = "codecs")
 pub function unsnappy(bytes) -> array
     return snappy_decompress(bytes)
 end
 
 ## Decompresses Snappy data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unsnappy_str(bytes) -> str
     return snappy_decompress_str(bytes)
 end
@@ -328,21 +407,25 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using in-memory SZIP / Deflate.
+@cfg(feature = "codecs")
 pub function szip(bytes) -> array
     return szip_compress(bytes)
 end
 
 ## Compresses a string using in-memory SZIP / Deflate.
+@cfg(feature = "codecs")
 pub function szip_str(text: str) -> array
     return szip_compress_str(text)
 end
 
 ## Decompresses SZIP data into a byte array.
+@cfg(feature = "codecs")
 pub function unszip(bytes) -> array
     return szip_decompress(bytes)
 end
 
 ## Decompresses SZIP data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unszip_str(bytes) -> str
     return szip_decompress_str(bytes)
 end
@@ -352,31 +435,37 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using Zlib (default level 6).
+@cfg(feature = "codecs")
 pub function zlib(bytes) -> array
     return zlib_compress(bytes)
 end
 
 ## Compresses a string using Zlib (default level 6).
+@cfg(feature = "codecs")
 pub function zlib_str(text: str) -> array
     return zlib_compress_str(text)
 end
 
 ## Compresses a byte array using Zlib with specified level (1..9).
+@cfg(feature = "codecs")
 pub function zlib_level(bytes, level: int) -> array
     return zlib_compress_level(bytes, level)
 end
 
 ## Compresses a string using Zlib with specified level (1..9).
+@cfg(feature = "codecs")
 pub function zlib_str_level(text: str, level: int) -> array
     return zlib_compress_str_level(text, level)
 end
 
 ## Decompresses Zlib data into a byte array.
+@cfg(feature = "codecs")
 pub function unzlib(bytes) -> array
     return zlib_decompress(bytes)
 end
 
 ## Decompresses Zlib data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unzlib_str(bytes) -> str
     return zlib_decompress_str(bytes)
 end
@@ -386,31 +475,37 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a byte array using Zstandard (default level 3).
+@cfg(feature = "codecs")
 pub function zstd(bytes) -> array
     return zstd_compress(bytes)
 end
 
 ## Compresses a string using Zstandard (default level 3).
+@cfg(feature = "codecs")
 pub function zstd_str(text: str) -> array
     return zstd_compress_str(text)
 end
 
 ## Compresses a byte array using Zstandard with specified level (1..22).
+@cfg(feature = "codecs")
 pub function zstd_level(bytes, level: int) -> array
     return zstd_compress_level(bytes, level)
 end
 
 ## Compresses a string using Zstandard with specified level (1..22).
+@cfg(feature = "codecs")
 pub function zstd_str_level(text: str, level: int) -> array
     return zstd_compress_str_level(text, level)
 end
 
 ## Decompresses Zstandard data into a byte array.
+@cfg(feature = "codecs")
 pub function unzstd(bytes) -> array
     return zstd_decompress(bytes)
 end
 
 ## Decompresses Zstandard data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unzstd_str(bytes) -> str
     return zstd_decompress_str(bytes)
 end
@@ -420,21 +515,25 @@ end
 # ═══════════════════════════════════════════════════════════════
 
 ## Compresses a string using canonical Huffman prefix coding.
+@cfg(feature = "codecs")
 pub function huffman(text: str) -> array
     return huffman_compress(text)
 end
 
 ## Compresses a string using canonical Huffman prefix coding.
+@cfg(feature = "codecs")
 pub function huffman_str(text: str) -> array
     return huffman_compress(text)
 end
 
 ## Decompresses Huffman data into a string.
+@cfg(feature = "codecs")
 pub function unhuffman(bytes) -> str
     return huffman_decompress(bytes)
 end
 
 ## Decompresses Huffman data directly into a UTF-8 string.
+@cfg(feature = "codecs")
 pub function unhuffman_str(bytes) -> str
     return huffman_decompress(bytes)
 end
