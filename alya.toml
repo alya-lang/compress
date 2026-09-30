@@ -1,6 +1,6 @@
 [package]
 name = "compress"
-version = "0.2.0"
+version = "0.1.0"
 alya-version = "0.0.19"
 entry = "src/lib.alya"
 description = "Comprehensive compression toolkit for Alya (Brotli, Bzip2, Deflate, Gzip, Huffman, LZ family, Snappy, Szip, Zlib, Zstd)"
