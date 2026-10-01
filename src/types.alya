@@ -208,8 +208,19 @@ pub function ptr_to_string(ptr, len: int) -> string
     if len == 0
         return ""
     end
-    poke_byte(ptr, len, 0)
-    return str_clone(str_from_ptr(ptr))
+    # Copy into a private NUL-terminated buffer: the source belongs to
+    # the caller (often an exactly-sized C heap block), so terminating
+    # it in place would write 1 byte past the allocation (heap smash).
+    let buf = alloc(len + 1)
+    let i = 0
+    while i < len
+        poke_byte(buf, i, peek_byte(ptr, i))
+        i += 1
+    end
+    poke_byte(buf, len, 0)
+    let result = str_clone(str_from_ptr(buf))
+    free(buf)
+    return result
 end
 
 ## Converts an Alya string into a list of byte integers `[0..255]`.
