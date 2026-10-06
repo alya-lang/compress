@@ -336,26 +336,26 @@ function check_codec_binary(r)
     runner_assert_eq(r, len(bin_lzma2_out), len(binary_data), "LZMA2 binary length matches")
     runner_assert_eq(r, len(bin_lzjb_out), len(binary_data), "LZJB binary length matches")
 
-    let bin_match = 1
+    let bin_match = true
     let b_idx = 0
     while b_idx < len(binary_data)
-        if bin_gz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_zl_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_def_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_snp_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_zst_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_bz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_br_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_sz_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lz77_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lz78_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lzw_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lzss_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lzma_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lzma2_out[b_idx] != binary_data[b_idx] bin_match = 0 end
-        if bin_lzjb_out[b_idx] != binary_data[b_idx] bin_match = 0 end
+        if bin_gz_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_zl_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_def_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lz_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_snp_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_zst_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_bz_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_br_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_sz_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lz77_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lz78_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lzw_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lzss_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lzma_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lzma2_out[b_idx] != binary_data[b_idx] bin_match = false end
+        if bin_lzjb_out[b_idx] != binary_data[b_idx] bin_match = false end
         b_idx += 1
     end
-    runner_assert_eq(r, bin_match, 1, "Binary payload roundtrip matches across all codecs")
+    runner_assert_eq(r, bin_match, true, "Binary payload roundtrip matches across all codecs")
 end

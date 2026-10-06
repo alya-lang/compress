@@ -152,7 +152,7 @@ pub function prepare_bytes_input(bytes) -> array
         i += 1
     end
     poke_byte(p, n, 0)
-    return [p, n, 1]
+    return [p, n, true]
 end
 
 ## Prepares an Alya string for C-FFI by obtaining its direct byte pointer.
@@ -165,7 +165,7 @@ end
 pub function prepare_string_input(text) -> array
     let slen = len(text)
     let p = str_to_ptr(text)
-    return [p, slen, 0]
+    return [p, slen, false]
 end
 
 ## Frees temporary input buffer if it was dynamically allocated by `prepare_bytes_input`.
@@ -173,7 +173,7 @@ end
 ## ### Parameters
 ## - `prep`: 3-element array returned by `prepare_bytes_input`.
 pub function free_prepared_input(prep)
-    if prep[2] == 1
+    if prep[2] == true
         free(prep[0])
     end
 end
