@@ -233,7 +233,7 @@ pub function huffman_decompress(bytes) -> str
         let s = ""
         let i = 0
         while i < uncompressed_len
-            s = s + single_sym
+            s += single_sym
             i += 1
         end
         return s
@@ -297,7 +297,7 @@ pub function huffman_decompress(bytes) -> str
             end
 
             if tree[curr][0] != -1
-                res = res + chr(tree[curr][0])
+                res += chr(tree[curr][0])
                 decoded_count += 1
                 curr = 0
             end

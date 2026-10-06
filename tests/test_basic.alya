@@ -239,7 +239,7 @@ function check_codec_ratios(r)
     let repetitive = ""
     let rep_i = 0
     while rep_i < 100
-        repetitive = repetitive + "compress-compress-alya-alya-ecosystem-"
+        repetitive += "compress-compress-alya-alya-ecosystem-"
         rep_i += 1
     end
     let rep_orig_len = len(repetitive) # 3800 bytes
