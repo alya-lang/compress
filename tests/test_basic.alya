@@ -127,6 +127,24 @@ function check_codec_roundtrips(r)
     let def_restored = compress::inflate_str(def)
     runner_assert_str_eq(r, def_restored, sample_text, "inflate_str restores original text")
 
+    # 5b. Auto-alloc decompression past the initial buffer estimate
+    # (alya-lang/compress#5: outputs past 4096 bytes failed with -3).
+    let big_data = []
+    let bi = 0
+    while bi < 20000
+        big_data.push(bi % 251)
+        bi += 1
+    end
+    let big_def = compress::inflate(compress::deflate(big_data))
+    runner_assert_eq(r, len(big_def), 20000, "inflate grows past initial estimate")
+    runner_assert_eq(r, compress::crc32(big_def), compress::crc32(big_data), "inflate content matches (crc32)")
+    let big_gz = compress::gunzip(compress::gzip(big_data))
+    runner_assert_eq(r, len(big_gz), 20000, "gunzip grows past initial estimate")
+    runner_assert_eq(r, compress::crc32(big_gz), compress::crc32(big_data), "gunzip content matches (crc32)")
+    let big_zl = compress::unzlib(compress::zlib(big_data))
+    runner_assert_eq(r, len(big_zl), 20000, "unzlib grows past initial estimate")
+    runner_assert_eq(r, compress::crc32(big_zl), compress::crc32(big_data), "unzlib content matches (crc32)")
+
     # 6. LZ4 / LZ Fast Compression Roundtrip
     let lz = compress::lz4_str(sample_text)
     runner_assert_true(r, len(lz) > 4, "LZ4 output has 4-byte length prefix")

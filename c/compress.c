@@ -440,16 +440,32 @@ int alya_deflate_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **o
     stream.next_in = src;
     stream.avail_in = (unsigned int)src_len;
 
+    /* Streaming growth loop: MZ_NO_FLUSH (not MZ_FINISH) so a full
+       output buffer yields MZ_OK/MZ_BUF_ERROR with retryable state.
+       (MZ_FINISH on the first call takes miniz's single-shot path,
+       which fails with MZ_DATA_ERROR instead of asking for room.) */
     while (1) {
         stream.next_out = buf + stream.total_out;
         stream.avail_out = (unsigned int)(cap - stream.total_out);
 
-        status = mz_inflate(&stream, MZ_FINISH);
+        status = mz_inflate(&stream, MZ_NO_FLUSH);
         if (status == MZ_STREAM_END) {
             break;
         }
-        if (status == MZ_OK || status == MZ_BUF_ERROR) {
+        if (status == MZ_BUF_ERROR && stream.avail_out != 0) {
+            /* Output has room but no progress is possible: the input
+               is truncated. Growing cannot help. */
+            mz_inflateEnd(&stream);
+            free(buf);
+            return status;
+        }
+        if ((status == MZ_OK || status == MZ_BUF_ERROR) && stream.avail_out == 0) {
             size_t new_cap = cap * 2;
+            if (new_cap < cap) {
+                mz_inflateEnd(&stream);
+                free(buf);
+                return -5;
+            }
             uint8_t *new_buf = (uint8_t *)realloc(buf, new_cap + 1);
             if (!new_buf) {
                 mz_inflateEnd(&stream);
@@ -458,6 +474,11 @@ int alya_deflate_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **o
             }
             buf = new_buf;
             cap = new_cap;
+            continue;
+        }
+        if (status == MZ_OK) {
+            /* Progress with room to spare: more input remains, loop
+               again without growing. */
             continue;
         }
         mz_inflateEnd(&stream);
@@ -493,16 +514,28 @@ int alya_zlib_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **out_
     stream.next_in = src;
     stream.avail_in = (unsigned int)src_len;
 
+    /* See alya_deflate_decompress_auto: MZ_NO_FLUSH keeps the growth
+       loop retryable; MZ_FINISH would fail short buffers with -3. */
     while (1) {
         stream.next_out = buf + stream.total_out;
         stream.avail_out = (unsigned int)(cap - stream.total_out);
 
-        status = mz_inflate(&stream, MZ_FINISH);
+        status = mz_inflate(&stream, MZ_NO_FLUSH);
         if (status == MZ_STREAM_END) {
             break;
         }
-        if (status == MZ_OK || status == MZ_BUF_ERROR) {
+        if (status == MZ_BUF_ERROR && stream.avail_out != 0) {
+            mz_inflateEnd(&stream);
+            free(buf);
+            return status;
+        }
+        if ((status == MZ_OK || status == MZ_BUF_ERROR) && stream.avail_out == 0) {
             size_t new_cap = cap * 2;
+            if (new_cap < cap) {
+                mz_inflateEnd(&stream);
+                free(buf);
+                return -5;
+            }
             uint8_t *new_buf = (uint8_t *)realloc(buf, new_cap + 1);
             if (!new_buf) {
                 mz_inflateEnd(&stream);
@@ -511,6 +544,9 @@ int alya_zlib_decompress_auto(const uint8_t *src, size_t src_len, uint8_t **out_
             }
             buf = new_buf;
             cap = new_cap;
+            continue;
+        }
+        if (status == MZ_OK) {
             continue;
         }
         mz_inflateEnd(&stream);
