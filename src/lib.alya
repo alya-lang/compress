@@ -38,7 +38,6 @@ import "bzip2.alya"
 @cfg(feature = "codecs")
 import "brotli.alya"
 @cfg(feature = "codecs")
-@cfg(feature = "codecs")
 import "szip.alya"
 import "checksum.alya"
 @cfg(feature = "codecs")
